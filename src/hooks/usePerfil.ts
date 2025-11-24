@@ -9,16 +9,20 @@ export function usePerfil() {
 	const [loadingPerfil, setLoadingPerfil] = useState(true);
 
 	async function cargarPerfil() {
-		if (!user) return;
+		if (!user) {
+			setPerfil(null);
+			setLoadingPerfil(false);
+			return;
+		}
 
 		setLoadingPerfil(true);
 
-		// 1. Buscar por user_id
-		let { data: perfilUser } = await supabase
+		// 1. Buscar perfil por user_id
+		const { data: perfilUser, error: errorUser } = await supabase
 			.from("profiles")
 			.select("*")
 			.eq("user_id", user.id)
-			.single();
+			.maybeSingle(); // <-- FIX
 
 		if (perfilUser) {
 			setPerfil(perfilUser);
@@ -26,15 +30,21 @@ export function usePerfil() {
 			return;
 		}
 
-		// 2. Compatibilidad con versión antigua (id)
-		let { data: perfilId } = await supabase
+		// 2. Compatibilidad antigua: buscar por id
+		const { data: perfilId } = await supabase
 			.from("profiles")
 			.select("*")
 			.eq("id", user.id)
-			.single();
+			.maybeSingle(); // <-- FIX
 
-		if (perfilId) setPerfil(perfilId);
+		if (perfilId) {
+			setPerfil(perfilId);
+			setLoadingPerfil(false);
+			return;
+		}
 
+		// Si no existe perfil, devolvemos null
+		setPerfil(null);
 		setLoadingPerfil(false);
 	}
 

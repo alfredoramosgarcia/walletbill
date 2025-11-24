@@ -1,214 +1,107 @@
 import { useState } from "react";
 
-// Hooks
+import { useAuth } from "../../hooks/useAuth";
 import { useMovimientos } from "../../hooks/useMovimientos";
 import { useFavoritos } from "../../hooks/useFavoritos";
-import { usePorcentajes } from "../../hooks/usePorcentajes";
+import { useCategorias } from "../../hooks/useCategorias";
+import { usePorcentajesDB } from "../../hooks/usePorcentajesDB";
+import { useFecha } from "../../context/FechaContext";
 
-// Components
+import DynamicCategoryBox from "../../components/dashboard/DynamicCategoryBox";
+import TotalesMes from "../../components/dashboard/TotalesMes";
 import Alert from "../../components/alerts/Alert";
 import FavoritosModal from "../../components/favoritos/FavoritosModal";
 
-import CategoryBox from "../../components/dashboard/CategoryBox";
-import IngresosBox from "../../components/dashboard/IngresosBox";
-import TotalesMes from "../../components/dashboard/TotalesMes";
-
-import { supabase } from "../../supabase/client";
-import type { Favorito } from "../../types/Favorito";
-import { useFecha } from "../../context/FechaContext";
-
-
-
-
 export default function Dashboard() {
-	// ===============================
-	// ESTADOS
-	// ===============================
 	const { mes, año } = useFecha();
+	const { user } = useAuth();
+
 	const [alertMsg, setAlertMsg] = useState("");
 	const [showFavModal, setShowFavModal] = useState(false);
-	const { movs, cargarMovimientos } = useMovimientos(mes, año);
+
+	const { movs } = useMovimientos(mes, año);
+	const { categorias } = useCategorias();
 	const { favoritos } = useFavoritos();
+
+	const gastos = categorias.filter((c) => c.tipo === "gasto");
+	const ingresos = categorias.filter((c) => c.tipo === "ingreso");
+
 	const {
-		pEsenciales,
-		pAhorro,
-		pEstilo,
-		setPEsenciales,
-		setPAhorro,
-		setPEstilo
-	} = usePorcentajes();
+		porcentajes,
+		updatePercent,
+		guardar,
+		loading
+	} = usePorcentajesDB(
+		user?.id ?? null,
+		gastos.map((g) => ({ id: g.id, nombre: g.nombre })),
+		mes,
+		año
+	);
 
-	// ===============================
-	// IMPORTAR FAVORITOS
-	// ===============================
-	async function importarFavorito(fav: Favorito) {
-		const user = (await supabase.auth.getUser()).data.user;
-		if (!user) return;
+	const totalIngresos = movs
+		.filter((m) => m.tipo === "ingreso")
+		.reduce((a, m) => a + m.cantidad, 0);
 
-		const { data: existe } = await supabase
-			.from("movimientos")
-			.select("*")
-			.match({
-				user_id: user.id,
-				tipo: fav.tipo,
-				categoria: fav.categoria,
-				concepto: fav.concepto,
-				cantidad: fav.cantidad,
-				mes: mes.toString(),
-				año,
-			});
+	const totalGastos = movs
+		.filter((m) => m.tipo === "gasto")
+		.reduce((a, m) => a + m.cantidad, 0);
 
-		if (existe && existe.length > 0) {
-			setAlertMsg("Ese favorito ya existe este mes ✔️");
-			return;
-		}
+	const totalMes = totalIngresos - Math.abs(totalGastos);
 
-		await supabase.from("movimientos").insert({
-			user_id: user.id,
-			tipo: fav.tipo,
-			categoria: fav.categoria,
-			concepto: fav.concepto,
-			cantidad: fav.cantidad,
-			mes: mes.toString(),
-			año,
-		});
-
-		setAlertMsg("Movimiento importado ⭐");
-		setShowFavModal(false);
-		cargarMovimientos();
+	async function guardarPorcentajes() {
+		await guardar();
+		setAlertMsg("Porcentajes guardados ✔️");
 	}
 
-	async function importarTodosFavoritos() {
-		const user = (await supabase.auth.getUser()).data.user;
-		if (!user) return;
-
-		for (const fav of favoritos) {
-			const { data: existe } = await supabase
-				.from("movimientos")
-				.select("*")
-				.match({
-					user_id: user.id,
-					tipo: fav.tipo,
-					categoria: fav.categoria,
-					concepto: fav.concepto,
-					cantidad: fav.cantidad,
-					mes: mes.toString(),
-					año,
-				});
-
-			if (!existe || existe.length === 0) {
-				await supabase.from("movimientos").insert({
-					user_id: user.id,
-					tipo: fav.tipo,
-					categoria: fav.categoria,
-					concepto: fav.concepto,
-					cantidad: fav.cantidad,
-					mes: mes.toString(),
-					año,
-				});
-			}
-		}
-
-		setAlertMsg("Favoritos importados ✔️");
-		setShowFavModal(false);
-		cargarMovimientos();
-	}
-
-	// ===============================
-	// CÁLCULOS
-	// ===============================
-	const ingresos = movs.filter((m) => m.tipo === "ingreso");
-
-	const esenciales = movs.filter((m) => m.categoria === "esenciales");
-	const ahorro = movs.filter((m) => m.categoria === "ahorro");
-	const estilo = movs.filter((m) => m.categoria === "estiloVida");
-	const extra = movs.filter((m) => m.categoria === "extraordinarios");
-
-	const totalIngresos = ingresos.reduce((a, m) => a + m.cantidad, 0);
-
-	const totalES = esenciales.reduce((a, m) => a + m.cantidad, 0);
-	const totalAH = ahorro.reduce((a, m) => a + m.cantidad, 0);
-	const totalEST = estilo.reduce((a, m) => a + m.cantidad, 0);
-	const totalEXTRA = extra.reduce((a, m) => a + m.cantidad, 0);
-
-	const totalGastos =
-		Math.abs(totalES) +
-		Math.abs(totalAH) +
-		Math.abs(totalEST) +
-		Math.abs(totalEXTRA);
-
-	const totalMes = totalIngresos - totalGastos;
-
-	// Límites
-	const limiteEs = (totalIngresos * pEsenciales) / 100;
-	const limiteAh = (totalIngresos * pAhorro) / 100;
-	const limiteEst = (totalIngresos * pEstilo) / 100;
-
-	// ===============================
-	// UI
-	// ===============================
 	return (
 		<div className="min-h-screen bg-[#D9ECEA] p-4 md:p-6">
 
 			<Alert message={alertMsg} onClose={() => setAlertMsg("")} />
 
+			{loading && (
+				<div className="text-center font-semibold text-gray-600">
+					Cargando porcentajes...
+				</div>
+			)}
 
-			{/* GRID PRINCIPAL */}
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-
-				<CategoryBox
-					title="GASTOS ESENCIALES"
-					percent={pEsenciales}
-					movimientos={esenciales}
-					total={totalES}
-					limite={limiteEs}
-					onPercentChange={setPEsenciales}
-				/>
-
-				<CategoryBox
-					title="AHORRO E INVERSIÓN"
-					percent={pAhorro}
-					movimientos={ahorro}
-					total={totalAH}
-					limite={limiteAh}
-					onPercentChange={setPAhorro}
-				/>
-
-				<CategoryBox
-					title="ESTILO DE VIDA"
-					percent={pEstilo}
-					movimientos={estilo}
-					total={totalEST}
-					limite={limiteEst}
-					onPercentChange={setPEstilo}
-				/>
-
+			{/* GASTOS */}
+			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+				{gastos.map((c) => (
+					<DynamicCategoryBox
+						key={c.id}
+						categoria={c.nombre}
+						movs={movs.filter((m) => m.categoria === c.nombre)}
+						tipo="gasto"
+						percent={porcentajes[c.id] ?? 0}
+						onPercentChange={(v) => updatePercent(c.id, v)}
+						totalIngresos={totalIngresos}
+					/>
+				))}
 			</div>
 
-			{/* EXTRAORDINARIOS + INGRESOS */}
+			{/* INGRESOS */}
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-
-				<CategoryBox
-					title="EXTRAORDINARIOS"
-					percent={0}
-					movimientos={extra}
-					total={totalEXTRA}
-					limite={0}
-				/>
-
-				<IngresosBox ingresos={ingresos} />
+				{ingresos.map((c) => (
+					<DynamicCategoryBox
+						key={c.id}
+						categoria={c.nombre}
+						movs={movs.filter((m) => m.categoria === c.nombre)}
+						tipo="ingreso"
+						percent={0}
+						onPercentChange={() => { }}
+						totalIngresos={totalIngresos}
+					/>
+				))}
 			</div>
 
-			{/* TOTAL MES */}
 			<TotalesMes totalMes={totalMes} />
 
-			{/* MODAL FAVORITOS */}
 			{showFavModal && (
 				<FavoritosModal
 					favoritos={favoritos}
 					onClose={() => setShowFavModal(false)}
-					onImportOne={importarFavorito}
-					onImportAll={importarTodosFavoritos}
+					onImportOne={() => { }}
+					onImportAll={() => { }}
 				/>
 			)}
 		</div>

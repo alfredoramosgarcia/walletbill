@@ -1,12 +1,7 @@
-interface Props {
-	totalMes: number;
-}
-
-export default function TotalesMes({ totalMes }: Props) {
+export default function TotalesMes({ totalMes }: { totalMes: number }) {
 	return (
 		<div className="w-full flex justify-center mt-8 mb-6 px-4">
 			<div className="bg-white rounded-xl shadow py-4 px-6 w-full max-w-md">
-
 				<span className="block text-center font-bold text-[#004D40] text-xl md:text-2xl">
 					TOTAL MES:
 				</span>
@@ -17,7 +12,6 @@ export default function TotalesMes({ totalMes }: Props) {
 				>
 					{totalMes.toFixed(2)} €
 				</span>
-
 			</div>
 		</div>
 	);

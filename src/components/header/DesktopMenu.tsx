@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 interface Props {
 	onAdd: () => void;
@@ -8,48 +8,63 @@ interface Props {
 
 export default function DesktopMenu({ onAdd, onSavePercents, onShowFav }: Props) {
 	const [open, setOpen] = useState(false);
+	const menuRef = useRef<HTMLDivElement>(null);
+
+	// Cerrar si clicas fuera
+	useEffect(() => {
+		function handleClickOutside(e: MouseEvent) {
+			if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+				setOpen(false);
+			}
+		}
+		document.addEventListener("mousedown", handleClickOutside);
+		return () => document.removeEventListener("mousedown", handleClickOutside);
+	}, []);
 
 	return (
-		<div className="relative z-50 inline-block">
-
+		<div className="relative" ref={menuRef}>
 			<button
 				onClick={() => setOpen(!open)}
-				className="bg-[#0097A7] text-white px-5 py-2 rounded-lg shadow hover:bg-[#008291] transition font-semibold border border-black"
+				className="bg-[#0097A7] text-white px-6 py-3 rounded-xl shadow hover:bg-[#007f90] font-semibold"
 			>
 				Menú ▼
 			</button>
 
 			{open && (
 				<div
-					className="
-						absolute left-0 top-full mt-2
-						w-56 
-						bg-[#D9ECEA]
-						border border-[#b1d5d2]
-						shadow-2xl
-						rounded-xl
-						overflow-hidden
-						animate-fadeIn
-						z-50
-					"
+					className="absolute left-0 mt-2 w-56 bg-white shadow-xl rounded-xl p-3 z-[999] border border-gray-200 animate-fadeIn"
 				>
-					<button onClick={() => { setOpen(false); onAdd(); }}
-						className="w-full text-left px-5 py-3 hover:bg-[#c3e1dd] transition">
-						+ Añadir
+					<button
+						onClick={() => {
+							onAdd();
+							setOpen(false);
+						}}
+						className="w-full text-left px-4 py-2 rounded-lg hover:bg-gray-100 font-medium"
+					>
+						➕ Añadir movimiento
 					</button>
 
-					<button onClick={() => { setOpen(false); onSavePercents(); }}
-						className="w-full text-left px-5 py-3 hover:bg-[#c3e1dd] transition">
-						Guardar porcentajes
+					<button
+						onClick={() => {
+							onSavePercents();
+							setOpen(false);
+						}}
+						className="w-full text-left px-4 py-2 rounded-lg hover:bg-gray-100 font-medium"
+					>
+						💾 Guardar porcentajes
 					</button>
 
-					<button onClick={() => { setOpen(false); onShowFav(); }}
-						className="w-full text-left px-5 py-3 hover:bg-[#c3e1dd] transition">
+					<button
+						onClick={() => {
+							onShowFav();
+							setOpen(false);
+						}}
+						className="w-full text-left px-4 py-2 rounded-lg hover:bg-gray-100 font-medium"
+					>
 						⭐ Favoritos
 					</button>
 				</div>
 			)}
-
 		</div>
 	);
 }

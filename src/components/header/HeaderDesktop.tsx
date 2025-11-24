@@ -6,22 +6,30 @@ interface Props {
 	perfil: Perfil | null;
 	guardarPorcentajes: () => void;
 	onShowFav: () => void;
+	setAlertMsg: (msg: string) => void;
 }
 
-export default function HeaderDesktop({ perfil, guardarPorcentajes, onShowFav }: Props) {
+export default function HeaderDesktop({
+	perfil,
+	guardarPorcentajes,
+	onShowFav,
+	setAlertMsg
+}: Props) {
 	return (
-		<div className="flex items-center justify-between w-full">
+		<div className="hidden md:flex w-full items-center justify-between mt-6">
 
-			{/* MENÚ DESPLEGABLE (PC) */}
+			{/* MENÚ DESPLEGABLE PC */}
 			<DesktopMenu
 				onAdd={() => (window.location.href = "/add")}
-				onSavePercents={guardarPorcentajes}
+				onSavePercents={() => {
+					guardarPorcentajes();
+					setAlertMsg("Porcentajes guardados ✔️");
+				}}
 				onShowFav={onShowFav}
 			/>
 
-			{/* PERFIL + LOGOUT (DERECHA) */}
+			{/* PERFIL Y LOGOUT */}
 			<div className="flex items-center gap-4">
-
 				{perfil && (
 					<div className="flex items-center gap-2">
 						<img
@@ -35,7 +43,7 @@ export default function HeaderDesktop({ perfil, guardarPorcentajes, onShowFav }:
 				<button
 					onClick={async () => {
 						await supabase.auth.signOut();
-						window.location.href = "/";
+						window.location.href = "/login";
 					}}
 					className="bg-white/80 text-red-600 font-semibold px-6 py-3 rounded shadow hover:bg-red-50"
 				>
