@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-
+import { formatCategoryTitle } from "../../utils/formatCategoryTitle";
 interface Props {
 	categoria: string;
 	movs: any[];
@@ -32,7 +32,7 @@ export default function DynamicCategoryBox({
 
 			{/* TÍTULO */}
 			<div className="flex justify-between items-center font-bold text-lg text-[#006C7A] uppercase">
-				{categoria}
+				{formatCategoryTitle(categoria)}
 
 				{tipo === "gasto" && (
 					<div className="flex items-center gap-1">
