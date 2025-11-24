@@ -6,44 +6,35 @@ interface Props {
 	perfil: Perfil | null;
 	guardarPorcentajes: () => void;
 	onShowFav: () => void;
-	setAlertMsg: (msg: string) => void;
 }
 
-export default function HeaderDesktop({
-	perfil,
-	guardarPorcentajes,
-	onShowFav,
-	setAlertMsg
-}: Props) {
+export default function HeaderDesktop({ perfil, guardarPorcentajes, onShowFav }: Props) {
 	return (
 		<div className="hidden md:flex w-full items-center justify-between mt-6">
 
-			{/* MENÚ DESPLEGABLE PC */}
+			{/* MENÚ DESPLEGABLE (PC) */}
 			<DesktopMenu
 				onAdd={() => (window.location.href = "/add")}
-				onSavePercents={() => {
-					guardarPorcentajes();
-					setAlertMsg("Porcentajes guardados ✔️");
-				}}
+				onSavePercents={guardarPorcentajes}
 				onShowFav={onShowFav}
 			/>
 
-			{/* PERFIL Y LOGOUT */}
+			{/* TEXTO DE BIENVENIDA */}
 			<div className="flex items-center gap-4">
+
 				{perfil && (
 					<div className="flex items-center gap-2">
-						<img
-							src={perfil.avatar_url || "/icono.png"}
-							className="w-10 h-10 rounded-full border shadow object-cover"
-						/>
-						<span className="font-semibold text-[#006C7A] text-lg">{perfil.nombre}</span>
+						<span className="font-semibold text-[#006C7A] text-lg">
+							Bienvenido, {perfil.nombre}
+						</span>
 					</div>
 				)}
 
+				{/* CERRAR SESIÓN (PC) */}
 				<button
 					onClick={async () => {
 						await supabase.auth.signOut();
-						window.location.href = "/login";
+						window.location.href = "/";
 					}}
 					className="bg-white/80 text-red-600 font-semibold px-6 py-3 rounded shadow hover:bg-red-50"
 				>

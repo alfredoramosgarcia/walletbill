@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { supabase } from "../../supabase/client";
 import type { Perfil } from "../../types/Perfil";
-import MesAnoSelector from "./MesAnoSelector";
 
 interface Props {
 	perfil: Perfil | null;
@@ -9,10 +8,6 @@ interface Props {
 	setMenuOpen: (v: boolean) => void;
 	guardarPorcentajes: () => void;
 	onShowFav: () => void;
-	mes: number;
-	año: number;
-	onMesChange: (v: number) => void;
-	onAñoChange: (v: number) => void;
 }
 
 export default function HeaderMobile({
@@ -21,23 +16,15 @@ export default function HeaderMobile({
 	setMenuOpen,
 	guardarPorcentajes,
 	onShowFav,
-	mes,
-	año,
-	onMesChange,
-	onAñoChange
 }: Props) {
 	return (
-		<div className="md:hidden flex flex-col items-center w-full">
+		<div className="md:hidden flex flex-col items-center mt-6 w-full">
 
-			{/* PERFIL */}
+			{/* BIENVENIDA EN MÓVIL */}
 			{perfil && (
-				<div className="flex flex-col items-center gap-2 mb-3">
-					<img
-						src={perfil.avatar_url || "/icono.png"}
-						className="w-16 h-16 rounded-full border shadow-md object-cover"
-					/>
+				<div className="flex flex-col items-center gap-1 mb-4 mt-2">
 					<span className="font-semibold text-lg text-[#006C7A]">
-						{perfil.nombre}
+						Bienvenido, {perfil.nombre}
 					</span>
 				</div>
 			)}
@@ -50,17 +37,9 @@ export default function HeaderMobile({
 				☰ Menú
 			</button>
 
-			{/* SELECTOR FECHA SIEMPRE VISIBLE EN MOBILE */}
-			<MesAnoSelector
-				mes={mes}
-				año={año}
-				onMesChange={onMesChange}
-				onAñoChange={onAñoChange}
-			/>
-
-			{/* MENÚ DESPLEGABLE */}
+			{/* MENÚ DESPLEGABLE MÓVIL */}
 			{menuOpen && (
-				<div className="w-full bg-white shadow-xl rounded-xl p-4 flex flex-col gap-3 animate-fadeIn mt-4">
+				<div className="w-full bg-white shadow-xl rounded-xl p-4 flex flex-col gap-3 animate-fadeIn">
 
 					<Link
 						to="/add"
@@ -83,6 +62,7 @@ export default function HeaderMobile({
 						⭐ Favoritos
 					</button>
 
+					{/* CERRAR SESIÓN SOLO EN MÓVIL */}
 					<button
 						onClick={async () => {
 							await supabase.auth.signOut();
@@ -95,7 +75,6 @@ export default function HeaderMobile({
 
 				</div>
 			)}
-
 		</div>
 	);
 }

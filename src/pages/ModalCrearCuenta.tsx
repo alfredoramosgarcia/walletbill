@@ -77,18 +77,45 @@ export default function ModalCrearCuenta({
 			return;
 		}
 
-		// PERFIL -----------------------------------------------
-		const user = data.user;
-		if (user) {
-			await supabase.from("profiles").upsert(
-				{
-					id: user.id,
-					nombre: nombre,
-					avatar_url: "",
-				},
-				{ onConflict: "id" }
-			);
+		// ==========================================================
+		// OBTENER ID DEL USUARIO (soporta email sin verificar)
+		// ==========================================================
+		let userId: string | null = null;
+
+		// Caso normal → user.id viene directo
+		if (data.user?.id) {
+			userId = data.user.id;
+		} else {
+			// Caso email pendiente de verificación → usar identities
+			const identities =
+				(data as any)?.user?.identities ||
+				data?.session?.user?.identities ||
+				[];
+
+			if (identities.length > 0 && identities[0].identity_id) {
+				userId = identities[0].identity_id;
+			}
 		}
+
+		// Si NO tenemos ID → error
+		if (!userId) {
+			setAlertType("error");
+			setAlertMsg("No se pudo crear el perfil. (ID no encontrado)");
+			return;
+		}
+
+		// ==========================================================
+		// INSERTAR PERFIL EN `profiles`
+		// ==========================================================
+
+		await supabase.from("profiles").upsert(
+			{
+				id: userId,
+				nombre: nombre,
+				avatar_url: "",
+			},
+			{ onConflict: "id" }
+		);
 
 		setAlertType("success");
 		setAlertMsg("Cuenta creada. Revisa tu correo para confirmar.");
