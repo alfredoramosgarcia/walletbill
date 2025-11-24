@@ -1,77 +1,75 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
 
-import "./index.css"
+import "./index.css";
 
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import AddMovimiento from "./pages/AddMovimiento";
 import EditMovimiento from "./pages/EditMovimiento";
+import Perfil from "./pages/Perfil";
 
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import RedirectIfLogged from "./components/auth/RedirectIfLogged";
-import Perfil from "./pages/Perfil";
 
+import MainLayout from "./layouts/MainLayout";
+import { FechaProvider } from "./context/FechaContext";
 
-
-
+// Layout sin header
+import AuthLayout from "./layouts/AuthLayout";
 
 export default function App() {
 	return (
 		<AuthProvider>
-			<BrowserRouter>
-				<Routes>
-					{/* Login accesible solo si NO estás logueado */}
-					<Route
-						path="/login"
-						element={
-							<RedirectIfLogged>
-								<Login />
-							</RedirectIfLogged>
-						}
-					/>
+			<FechaProvider>
+				<BrowserRouter>
+					<Routes>
 
-					<Route
-						path="/perfil"
-						element={
-							<ProtectedRoute>
-								<Perfil />
-							</ProtectedRoute>
-						}
-					/>
+						{/* ❌ Páginas SIN HEADER */}
+						<Route element={<AuthLayout />}>
+							<Route
+								path="/login"
+								element={
+									<RedirectIfLogged>
+										<Login />
+									</RedirectIfLogged>
+								}
+							/>
+							<Route
+								path="/add"
+								element={
+									<ProtectedRoute>
+										<AddMovimiento />
+									</ProtectedRoute>
+								}
+							/>
+							<Route
+								path="/edit/:id"
+								element={
+									<ProtectedRoute>
+										<EditMovimiento />
+									</ProtectedRoute>
+								}
+							/>
+						</Route>
 
-					{/* Dashboard y movimientos solo para usuarios logueados */}
-					<Route
-						path="/"
-						element={
-							<ProtectedRoute>
-								<Dashboard />
-							</ProtectedRoute>
-						}
-					/>
+						{/* ✅ Páginas CON HEADER */}
+						<Route
+							element={
+								<ProtectedRoute>
+									<MainLayout />
+								</ProtectedRoute>
+							}
+						>
+							<Route path="/" element={<Dashboard />} />
+							<Route path="/perfil" element={<Perfil />} />
+						</Route>
 
-					<Route
-						path="/add"
-						element={
-							<ProtectedRoute>
-								<AddMovimiento />
-							</ProtectedRoute>
-						}
-					/>
+						<Route path="*" element={<Navigate to="/" />} />
 
-					<Route
-						path="/edit/:id"
-						element={
-							<ProtectedRoute>
-								<EditMovimiento />
-							</ProtectedRoute>
-						}
-					/>
-
-					{/* Cualquier ruta desconocida → Dashboard si logueado o Login */}
-					<Route path="*" element={<Navigate to="/" />} />
-				</Routes>
-			</BrowserRouter>
+					</Routes>
+				</BrowserRouter>
+			</FechaProvider>
 		</AuthProvider>
 	);
 }

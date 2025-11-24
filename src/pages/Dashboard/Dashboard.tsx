@@ -1,7 +1,6 @@
 import { useState } from "react";
 
 // Hooks
-import { usePerfil } from "../../hooks/usePerfil";
 import { useMovimientos } from "../../hooks/useMovimientos";
 import { useFavoritos } from "../../hooks/useFavoritos";
 import { usePorcentajes } from "../../hooks/usePorcentajes";
@@ -10,39 +9,33 @@ import { usePorcentajes } from "../../hooks/usePorcentajes";
 import Alert from "../../components/alerts/Alert";
 import FavoritosModal from "../../components/favoritos/FavoritosModal";
 
-import HeaderDesktop from "../../components/header/HeaderDesktop";
-import HeaderMobile from "../../components/header/HeaderMobile";
-import MesAnoSelector from "../../components/header/MesAnoSelector";
-
 import CategoryBox from "../../components/dashboard/CategoryBox";
 import IngresosBox from "../../components/dashboard/IngresosBox";
 import TotalesMes from "../../components/dashboard/TotalesMes";
 
 import { supabase } from "../../supabase/client";
 import type { Favorito } from "../../types/Favorito";
+import { useFecha } from "../../context/FechaContext";
+
+
+
 
 export default function Dashboard() {
 	// ===============================
 	// ESTADOS
 	// ===============================
-	const [mes, setMes] = useState(new Date().getMonth() + 1);
-	const [año, setAño] = useState(new Date().getFullYear());
-	const [menuOpen, setMenuOpen] = useState(false);
+	const { mes, año } = useFecha();
 	const [alertMsg, setAlertMsg] = useState("");
 	const [showFavModal, setShowFavModal] = useState(false);
-
-	// Hooks
-	const { perfil } = usePerfil();
 	const { movs, cargarMovimientos } = useMovimientos(mes, año);
-	const { favoritos, cargarFavoritos } = useFavoritos();
+	const { favoritos } = useFavoritos();
 	const {
 		pEsenciales,
 		pAhorro,
 		pEstilo,
 		setPEsenciales,
 		setPAhorro,
-		setPEstilo,
-		guardar,
+		setPEstilo
 	} = usePorcentajes();
 
 	// ===============================
@@ -159,34 +152,6 @@ export default function Dashboard() {
 
 			<Alert message={alertMsg} onClose={() => setAlertMsg("")} />
 
-			{/* Selector Mes/Año */}
-			<MesAnoSelector
-				mes={mes}
-				año={año}
-				onMesChange={setMes}
-				onAñoChange={setAño}
-			/>
-
-			{/* Header Desktop y Móvil */}
-			<HeaderDesktop
-				perfil={perfil}
-				guardarPorcentajes={() => {
-					const res = guardar();
-					setAlertMsg(res.msg);
-				}}
-				onShowFav={() => setShowFavModal(true)}
-			/>
-
-			<HeaderMobile
-				perfil={perfil}
-				menuOpen={menuOpen}
-				setMenuOpen={setMenuOpen}
-				guardarPorcentajes={() => {
-					const res = guardar();
-					setAlertMsg(res.msg);
-				}}
-				onShowFav={() => setShowFavModal(true)}
-			/>
 
 			{/* GRID PRINCIPAL */}
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">

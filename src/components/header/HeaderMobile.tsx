@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
-import type { Perfil } from "../../types/Perfil";
 import { supabase } from "../../supabase/client";
+import type { Perfil } from "../../types/Perfil";
+import MesAnoSelector from "./MesAnoSelector";
 
 interface Props {
 	perfil: Perfil | null;
@@ -8,6 +9,10 @@ interface Props {
 	setMenuOpen: (v: boolean) => void;
 	guardarPorcentajes: () => void;
 	onShowFav: () => void;
+	mes: number;
+	año: number;
+	onMesChange: (v: number) => void;
+	onAñoChange: (v: number) => void;
 }
 
 export default function HeaderMobile({
@@ -16,13 +21,17 @@ export default function HeaderMobile({
 	setMenuOpen,
 	guardarPorcentajes,
 	onShowFav,
+	mes,
+	año,
+	onMesChange,
+	onAñoChange
 }: Props) {
 	return (
-		<div className="md:hidden flex flex-col items-center mt-6 w-full">
+		<div className="md:hidden flex flex-col items-center w-full">
 
-			{/* Perfil */}
+			{/* PERFIL */}
 			{perfil && (
-				<div className="flex flex-col items-center gap-2 mb-3 mt-2">
+				<div className="flex flex-col items-center gap-2 mb-3">
 					<img
 						src={perfil.avatar_url || "/icono.png"}
 						className="w-16 h-16 rounded-full border shadow-md object-cover"
@@ -33,7 +42,7 @@ export default function HeaderMobile({
 				</div>
 			)}
 
-			{/* Botón menú */}
+			{/* BOTÓN MENÚ */}
 			<button
 				onClick={() => setMenuOpen(!menuOpen)}
 				className="bg-[#0097A7] text-white px-6 py-3 rounded-xl shadow hover:bg-[#007f90] font-semibold flex items-center gap-2 mb-3"
@@ -41,9 +50,17 @@ export default function HeaderMobile({
 				☰ Menú
 			</button>
 
-			{/* Menú desplegable */}
+			{/* SELECTOR FECHA SIEMPRE VISIBLE EN MOBILE */}
+			<MesAnoSelector
+				mes={mes}
+				año={año}
+				onMesChange={onMesChange}
+				onAñoChange={onAñoChange}
+			/>
+
+			{/* MENÚ DESPLEGABLE */}
 			{menuOpen && (
-				<div className="w-full bg-white shadow-xl rounded-xl p-4 flex flex-col gap-3 animate-fadeIn">
+				<div className="w-full bg-white shadow-xl rounded-xl p-4 flex flex-col gap-3 animate-fadeIn mt-4">
 
 					<Link
 						to="/add"
@@ -75,8 +92,10 @@ export default function HeaderMobile({
 					>
 						Cerrar sesión
 					</button>
+
 				</div>
 			)}
+
 		</div>
 	);
 }
