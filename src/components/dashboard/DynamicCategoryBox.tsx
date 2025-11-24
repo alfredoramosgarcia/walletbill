@@ -67,13 +67,15 @@ export default function DynamicCategoryBox({
 			</div>
 
 			{/* INFO FINAL */}
-			<div className="mt-3 text-sm font-semibold space-y-1">
+			<div className="mt-3 text-sm font-semibold space-y-1 text-gray-800">
 
 				{tipo === "gasto" ? (
 					<>
 						<div className="flex justify-between">
 							<span>TOTAL GASTADO:</span>
-							<span className="text-red-600">{Math.abs(total).toFixed(2)}€</span>
+							<span className="text-red-600">
+								{Math.abs(total).toFixed(2)}€
+							</span>
 						</div>
 
 						<div className="flex justify-between">
@@ -96,7 +98,9 @@ export default function DynamicCategoryBox({
 				) : (
 					<div className="flex justify-between">
 						<span>TOTAL INGRESOS:</span>
-						<span className="text-green-600">{Math.abs(total).toFixed(2)}€</span>
+						<span className="text-green-600">
+							{Math.abs(total).toFixed(2)}€
+						</span>
 					</div>
 				)}
 			</div>
