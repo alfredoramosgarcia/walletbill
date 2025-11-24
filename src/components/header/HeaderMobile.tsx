@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { supabase } from "../../supabase/client";
 import type { Perfil } from "../../types/Perfil";
+import MesAnoSelector from "../../components/header/MesAnoSelector";
 
 interface Props {
 	perfil: Perfil | null;
@@ -8,6 +9,12 @@ interface Props {
 	setMenuOpen: (v: boolean) => void;
 	guardarPorcentajes: () => void;
 	onShowFav: () => void;
+
+	// NUEVO
+	mes: number;
+	año: number;
+	onMesChange: (n: number) => void;
+	onAñoChange: (n: number) => void;
 }
 
 export default function HeaderMobile({
@@ -16,13 +23,19 @@ export default function HeaderMobile({
 	setMenuOpen,
 	guardarPorcentajes,
 	onShowFav,
+
+	// NUEVO
+	mes,
+	año,
+	onMesChange,
+	onAñoChange
 }: Props) {
 	return (
 		<div className="md:hidden flex flex-col items-center mt-6 w-full">
 
-			{/* BIENVENIDA EN MÓVIL */}
+			{/* BIENVENIDA */}
 			{perfil && (
-				<div className="flex flex-col items-center gap-1 mb-4 mt-2">
+				<div className="flex flex-col items-center gap-1 mb-2 mt-2">
 					<span className="font-semibold text-lg text-[#006C7A]">
 						Bienvenido, {perfil.nombre}
 					</span>
@@ -32,12 +45,12 @@ export default function HeaderMobile({
 			{/* BOTÓN MENÚ */}
 			<button
 				onClick={() => setMenuOpen(!menuOpen)}
-				className="bg-[#0097A7] text-white px-6 py-3 rounded-xl shadow hover:bg-[#007f90] font-semibold flex items-center gap-2 mb-3"
+				className="bg-[#0097A7] text-white px-6 py-3 rounded-xl shadow hover:bg-[#007f90] font-semibold flex items-center gap-2 mt-4 mb-3"
 			>
 				☰ Menú
 			</button>
 
-			{/* MENÚ DESPLEGABLE MÓVIL */}
+			{/* MENÚ MÓVIL */}
 			{menuOpen && (
 				<div className="w-full bg-white shadow-xl rounded-xl p-4 flex flex-col gap-3 animate-fadeIn">
 
@@ -62,7 +75,6 @@ export default function HeaderMobile({
 						⭐ Favoritos
 					</button>
 
-					{/* CERRAR SESIÓN SOLO EN MÓVIL */}
 					<button
 						onClick={async () => {
 							await supabase.auth.signOut();
@@ -74,7 +86,16 @@ export default function HeaderMobile({
 					</button>
 
 				</div>
+
 			)}
+
+			{/* SELECTOR MES/AÑO */}
+			<MesAnoSelector
+				mes={mes}
+				año={año}
+				onMesChange={onMesChange}
+				onAñoChange={onAñoChange}
+			/>
 		</div>
 	);
 }
