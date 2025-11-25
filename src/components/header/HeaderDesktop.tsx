@@ -7,6 +7,7 @@ interface Props {
 	perfil: Perfil | null;
 	guardarPorcentajes: () => void;
 	onShowFav: () => void;
+	onLimpiarMes: () => void;
 	mes: number;
 	año: number;
 	onMesChange: (n: number) => void;
@@ -17,6 +18,7 @@ export default function HeaderDesktop({
 	perfil,
 	guardarPorcentajes,
 	onShowFav,
+	onLimpiarMes,
 	mes,
 	año,
 	onMesChange,
@@ -25,16 +27,17 @@ export default function HeaderDesktop({
 	return (
 		<div className="hidden md:grid w-full grid-cols-3 items-center py-4 px-7">
 
-			{/* IZQUIERDA → Menú */}
 			<div className="flex justify-start">
 				<DesktopMenu
 					onAdd={() => (window.location.href = "/add")}
 					onSavePercents={guardarPorcentajes}
 					onShowFav={onShowFav}
+					onLimpiarMes={onLimpiarMes}
+					mes={mes}
+					año={año}
 				/>
 			</div>
 
-			{/* CENTRO → Selector de mes/año */}
 			<div className="flex justify-center">
 				<MesAnoSelector
 					mes={mes}
@@ -44,9 +47,7 @@ export default function HeaderDesktop({
 				/>
 			</div>
 
-			{/* DERECHA → Bienvenida + Cerrar sesión (juntos, alineados) */}
 			<div className="flex justify-end items-center gap-3">
-
 				{perfil && (
 					<span className="font-semibold text-[#006C7A] text-lg">
 						Bienvenido, {perfil.nombre}
@@ -62,9 +63,7 @@ export default function HeaderDesktop({
 				>
 					Cerrar sesión
 				</button>
-
 			</div>
-
 		</div>
 	);
 }

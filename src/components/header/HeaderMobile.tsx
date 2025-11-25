@@ -9,6 +9,7 @@ interface Props {
 	setMenuOpen: (v: boolean) => void;
 	guardarPorcentajes: () => void;
 	onShowFav: () => void;
+	onLimpiarMes: () => void;
 	mes: number;
 	año: number;
 	onMesChange: (n: number) => void;
@@ -21,6 +22,7 @@ export default function HeaderMobile({
 	setMenuOpen,
 	guardarPorcentajes,
 	onShowFav,
+	onLimpiarMes,
 	mes,
 	año,
 	onMesChange,
@@ -29,7 +31,6 @@ export default function HeaderMobile({
 	return (
 		<div className="md:hidden flex flex-col items-center pt-2 w-full">
 
-			{/* Bienvenida */}
 			{perfil && (
 				<div className="flex flex-col items-center gap-1 mb-2 mt-2">
 					<span className="font-semibold text-lg text-[#006C7A]">
@@ -38,7 +39,6 @@ export default function HeaderMobile({
 				</div>
 			)}
 
-			{/* Botón menú */}
 			<button
 				onClick={() => setMenuOpen(!menuOpen)}
 				className="bg-[#0097A7] text-white px-6 py-3 rounded-xl shadow hover:bg-[#007f90] font-semibold flex items-center gap-2 mt-4 mb-3"
@@ -46,7 +46,6 @@ export default function HeaderMobile({
 				☰ Menú
 			</button>
 
-			{/* Contenido menú */}
 			{menuOpen && (
 				<div className="w-full bg-white shadow-xl rounded-xl p-4 flex flex-col gap-3 animate-fadeIn">
 
@@ -72,11 +71,19 @@ export default function HeaderMobile({
 					</button>
 
 					<button
+						onClick={onLimpiarMes}
+						className="bg-red-500 text-white px-5 py-3 rounded-lg shadow text-center font-semibold hover:bg-red-600"
+					>
+						🧹 Limpiar mes
+					</button>
+
+
+					<button
 						onClick={async () => {
 							await supabase.auth.signOut();
 							window.location.href = "/";
 						}}
-						className="bg-red-500 text-white px-5 py-3 rounded-lg shadow text-center font-semibold hover:bg-red-600"
+						className="bg-gray-500 text-white px-5 py-3 rounded-lg shadow text-center font-semibold hover:bg-gray-600"
 					>
 						Cerrar sesión
 					</button>
@@ -84,7 +91,6 @@ export default function HeaderMobile({
 				</div>
 			)}
 
-			{/* Selector Mes/Año */}
 			<MesAnoSelector
 				mes={mes}
 				año={año}

@@ -4,12 +4,13 @@ import HeaderDesktop from "./HeaderDesktop";
 import { useAuth } from "../../hooks/useAuth";
 import { useFecha } from "../../context/FechaContext";
 
-interface Props {
+interface HeaderProps {
 	onShowFav: () => void;
+	onLimpiarMes: () => void;
 }
 
-export default function Header({ onShowFav }: Props) {
-	const { perfil } = useAuth(); // 👈 YA VIENE DE Supabase
+export default function Header({ onShowFav, onLimpiarMes }: HeaderProps) {
+	const { perfil } = useAuth();
 	const { mes, año, setMes, setAño } = useFecha();
 
 	const [menuOpen, setMenuOpen] = useState(false);
@@ -17,11 +18,12 @@ export default function Header({ onShowFav }: Props) {
 	return (
 		<header className="w-full">
 			<HeaderMobile
-				perfil={perfil} // 👈 Perfil
+				perfil={perfil}
 				menuOpen={menuOpen}
 				setMenuOpen={setMenuOpen}
 				guardarPorcentajes={() => { }}
 				onShowFav={onShowFav}
+				onLimpiarMes={onLimpiarMes}
 				mes={mes}
 				año={año}
 				onMesChange={setMes}
@@ -32,12 +34,12 @@ export default function Header({ onShowFav }: Props) {
 				perfil={perfil}
 				guardarPorcentajes={() => { }}
 				onShowFav={onShowFav}
+				onLimpiarMes={onLimpiarMes}
 				mes={mes}
 				año={año}
 				onMesChange={setMes}
 				onAñoChange={setAño}
 			/>
-
 		</header>
 	);
 }

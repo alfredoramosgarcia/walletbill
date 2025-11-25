@@ -4,10 +4,18 @@ interface Props {
 	onAdd: () => void;
 	onSavePercents: () => void;
 	onShowFav: () => void;
+	onLimpiarMes: () => void;
+	mes: number;
+	año: number;
 }
 
-export default function DesktopMenu({ onAdd, onSavePercents, onShowFav }: Props) {
-	const [open, setOpen] = useState<boolean>(false);
+export default function DesktopMenu({
+	onAdd,
+	onSavePercents,
+	onShowFav,
+	onLimpiarMes
+}: Props) {
+	const [open, setOpen] = useState(false);
 	const menuRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
@@ -31,6 +39,7 @@ export default function DesktopMenu({ onAdd, onSavePercents, onShowFav }: Props)
 
 			{open && (
 				<div className="absolute left-0 mt-2 w-56 bg-white shadow-xl rounded-xl p-3 z-[999] border border-gray-200 animate-fadeIn">
+
 					<button
 						onClick={() => {
 							onAdd();
@@ -60,6 +69,18 @@ export default function DesktopMenu({ onAdd, onSavePercents, onShowFav }: Props)
 					>
 						⭐ Favoritos
 					</button>
+
+					<button
+						onClick={() => {
+							onLimpiarMes();
+							setOpen(false);
+						}}
+						className="w-full text-left px-4 py-2 rounded-lg hover:bg-red-100 font-medium text-red-600"
+					>
+						🧹 Limpiar mes
+					</button>
+
+
 				</div>
 			)}
 		</div>

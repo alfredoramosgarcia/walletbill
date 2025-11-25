@@ -1,23 +1,19 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabase/client";
-import type { Movimiento } from "../types/Movimiento";
-import { useAuth } from "./useAuth";
 
-export function useMovimientos(mes: number, año: number) {
-	const { user } = useAuth();
-	const [movs, setMovs] = useState<Movimiento[]>([]);
+export function useMovimientos(mes: number, año: number, refreshKey: number) {
+	const [movs, setMovs] = useState<any[]>([]);
 	const [loadingMovs, setLoadingMovs] = useState(true);
 
-	async function cargarMovimientos() {
-		if (!user) return;
-
+	async function cargarMovs() {
 		setLoadingMovs(true);
+
+		const mesStr = mes.toString();
 
 		const { data } = await supabase
 			.from("movimientos")
 			.select("*")
-			.eq("user_id", user.id)
-			.eq("mes", mes.toString())
+			.eq("mes", mesStr)
 			.eq("año", año)
 			.order("id", { ascending: false });
 
@@ -26,8 +22,8 @@ export function useMovimientos(mes: number, año: number) {
 	}
 
 	useEffect(() => {
-		cargarMovimientos();
-	}, [mes, año, user]);
+		cargarMovs();
+	}, [mes, año, refreshKey]);
 
-	return { movs, loadingMovs, cargarMovimientos };
+	return { movs, loadingMovs };
 }

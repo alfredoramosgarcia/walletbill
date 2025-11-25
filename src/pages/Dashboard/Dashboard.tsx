@@ -6,6 +6,7 @@ import { useFavoritos } from "../../hooks/useFavoritos";
 import { useCategorias } from "../../hooks/useCategorias";
 import { usePorcentajesDB } from "../../hooks/usePorcentajesDB";
 import { useFecha } from "../../context/FechaContext";
+import { useMovimientosRefresh } from "../../context/MovimientoContext";
 
 import DynamicCategoryBox from "../../components/dashboard/DynamicCategoryBox";
 import TotalesMes from "../../components/dashboard/TotalesMes";
@@ -15,21 +16,27 @@ import FavoritosModal from "../../components/favoritos/FavoritosModal";
 export default function Dashboard() {
 	const { mes, año } = useFecha();
 	const { user } = useAuth();
+	const { refreshKey } = useMovimientosRefresh();
 
 	const [alertMsg, setAlertMsg] = useState("");
 	const [showFavModal, setShowFavModal] = useState(false);
 
-	const { movs } = useMovimientos(mes, año);
+	/* ----------------------------- MOVIMIENTOS ----------------------------- */
+	const { movs } = useMovimientos(mes, año, refreshKey);
+
+	/* ----------------------------- CATEGORÍAS ----------------------------- */
 	const { categorias } = useCategorias();
-	const { favoritos } = useFavoritos();
 
 	const gastos = categorias.filter((c) => c.tipo === "gasto");
 	const ingresos = categorias.filter((c) => c.tipo === "ingreso");
 
+	/* ----------------------------- FAVORITOS ----------------------------- */
+	const { favoritos } = useFavoritos();
+
+	/* ----------------------------- PORCENTAJES ----------------------------- */
 	const {
 		porcentajes,
 		updatePercent,
-		//guardar,
 		loading
 	} = usePorcentajesDB(
 		user?.id ?? null,
@@ -38,6 +45,7 @@ export default function Dashboard() {
 		año
 	);
 
+	/* ----------------------------- TOTALES MES ----------------------------- */
 	const totalIngresos = movs
 		.filter((m) => m.tipo === "ingreso")
 		.reduce((a, m) => a + m.cantidad, 0);
@@ -48,14 +56,18 @@ export default function Dashboard() {
 
 	const totalMes = totalIngresos - Math.abs(totalGastos);
 
-	/*async function guardarPorcentajes() {
-		await guardar();
-		setAlertMsg("Porcentajes guardados ✔️");
-	}*/
+	/* ----------------------------- ALERTA LOCAL ----------------------------- */
+	function showAlert(msg: string) {
+		setAlertMsg(msg);
+		setTimeout(() => setAlertMsg(""), 2000);
+	}
+
+	/* ----------------------------- RENDER UI ----------------------------- */
 
 	return (
 		<div className="min-h-screen bg-[#D9ECEA] p-4 md:p-6">
 
+			{/* ALERTA */}
 			<Alert message={alertMsg} onClose={() => setAlertMsg("")} />
 
 			{loading && (
@@ -64,13 +76,13 @@ export default function Dashboard() {
 				</div>
 			)}
 
-			{/* GASTOS */}
+			{/* ============================ GASTOS ============================ */}
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 				{gastos.map((c) => (
 					<DynamicCategoryBox
-						key={c.id}
+						key={`${c.id}-${refreshKey}`}  // 🔥 fuerza rerender al limpiar mes
 						categoria={c.nombre}
-						movs={movs.filter((m) => m.categoria === c.nombre)}
+						movs={[...movs.filter((m) => m.categoria === c.nombre)]}
 						tipo="gasto"
 						percent={porcentajes[c.id] ?? 0}
 						onPercentChange={(v) => updatePercent(c.id, v)}
@@ -79,13 +91,13 @@ export default function Dashboard() {
 				))}
 			</div>
 
-			{/* INGRESOS */}
+			{/* ============================ INGRESOS ============================ */}
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
 				{ingresos.map((c) => (
 					<DynamicCategoryBox
-						key={c.id}
+						key={`${c.id}-${refreshKey}`}
 						categoria={c.nombre}
-						movs={movs.filter((m) => m.categoria === c.nombre)}
+						movs={[...movs.filter((m) => m.categoria === c.nombre)]}
 						tipo="ingreso"
 						percent={0}
 						onPercentChange={() => { }}
@@ -96,6 +108,7 @@ export default function Dashboard() {
 
 			<TotalesMes totalMes={totalMes} />
 
+			{/* ========================== FAVORITOS MODAL ========================== */}
 			{showFavModal && (
 				<FavoritosModal
 					favoritos={favoritos}
