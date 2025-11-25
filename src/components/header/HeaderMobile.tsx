@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "../../supabase/client";
 import MesAnoSelector from "../../components/header/MesAnoSelector";
 import type { Perfil } from "../../types/Perfil";
+import { HomeIcon } from "@heroicons/react/24/solid";
 
 interface Props {
 	perfil: Perfil | null;
@@ -31,6 +32,15 @@ export default function HeaderMobile({
 	return (
 		<div className="md:hidden flex flex-col items-center pt-2 w-full">
 
+			{/* ICONO HOME */}
+			<Link
+				to="/"
+				className="p-2 rounded-lg bg-transparent hover:bg-[#0097A710] transition"
+			>
+				<HomeIcon className="w-7 h-7 text-[#006C7A]" />
+			</Link>
+
+			{/* Bienvenida */}
 			{perfil && (
 				<div className="flex flex-col items-center gap-1 mb-2 mt-2">
 					<span className="font-semibold text-lg text-[#006C7A]">
@@ -39,6 +49,7 @@ export default function HeaderMobile({
 				</div>
 			)}
 
+			{/* Botón menú */}
 			<button
 				onClick={() => setMenuOpen(!menuOpen)}
 				className="bg-[#0097A7] text-white px-6 py-3 rounded-xl shadow hover:bg-[#007f90] font-semibold flex items-center gap-2 mt-4 mb-3"
@@ -46,6 +57,7 @@ export default function HeaderMobile({
 				☰ Menú
 			</button>
 
+			{/* Contenido menú */}
 			{menuOpen && (
 				<div className="w-full bg-white shadow-xl rounded-xl p-4 flex flex-col gap-3 animate-fadeIn">
 
@@ -77,6 +89,17 @@ export default function HeaderMobile({
 						🧹 Limpiar mes
 					</button>
 
+					{/* NUEVO: Botón EVOLUCIÓN con estilo WalletBill */}
+					<button
+						onClick={() => (window.location.href = "/evolucion")}
+						className="
+							px-5 py-3 rounded-lg shadow font-semibold
+							border border-[#0097A7] text-[#006C7A] bg-white
+							hover:bg-[#E0F4F5] transition text-center
+						"
+					>
+						📈 Evolución
+					</button>
 
 					<button
 						onClick={async () => {
@@ -91,6 +114,7 @@ export default function HeaderMobile({
 				</div>
 			)}
 
+			{/* Selector Mes/Año */}
 			<MesAnoSelector
 				mes={mes}
 				año={año}

@@ -57,10 +57,7 @@ export default function Dashboard() {
 	const totalMes = totalIngresos - Math.abs(totalGastos);
 
 	/* ----------------------------- ALERTA LOCAL ----------------------------- */
-	function showAlert(msg: string) {
-		setAlertMsg(msg);
-		setTimeout(() => setAlertMsg(""), 2000);
-	}
+
 
 	/* ----------------------------- RENDER UI ----------------------------- */
 

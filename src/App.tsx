@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./hooks/useAuth";   // ⬅️ como estaba antes
+import { AuthProvider } from "./hooks/useAuth";
 import { FechaProvider } from "./context/FechaContext";
 
 import "./index.css";
@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard/Dashboard";
 import AddMovimiento from "./pages/AddMovimiento";
 import EditMovimiento from "./pages/EditMovimiento";
 import Perfil from "./pages/Perfil";
+import Evolucion from "./pages/Evolucion/Evolucion";
 
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import RedirectIfLogged from "./components/auth/RedirectIfLogged";
@@ -23,7 +24,7 @@ export default function App() {
 				<BrowserRouter>
 					<Routes>
 
-						{/* ❌ Páginas SIN HEADER (como antes) */}
+						{/* ❌ Páginas SIN header */}
 						<Route element={<AuthLayout />}>
 							<Route
 								path="/login"
@@ -53,7 +54,7 @@ export default function App() {
 							/>
 						</Route>
 
-						{/* ✅ Páginas CON HEADER (como antes) */}
+						{/* ✅ Páginas CON header (MainLayout) */}
 						<Route
 							element={
 								<ProtectedRoute>
@@ -63,8 +64,12 @@ export default function App() {
 						>
 							<Route path="/" element={<Dashboard />} />
 							<Route path="/perfil" element={<Perfil />} />
+
+							{/* ⭐ NUEVA PÁGINA EVOLUCIÓN */}
+							<Route path="/evolucion" element={<Evolucion />} />
 						</Route>
 
+						{/* Redirección por defecto */}
 						<Route path="*" element={<Navigate to="/" />} />
 
 					</Routes>

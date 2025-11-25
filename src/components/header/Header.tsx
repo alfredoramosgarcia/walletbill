@@ -4,12 +4,12 @@ import HeaderDesktop from "./HeaderDesktop";
 import { useAuth } from "../../hooks/useAuth";
 import { useFecha } from "../../context/FechaContext";
 
-interface HeaderProps {
+interface Props {
 	onShowFav: () => void;
 	onLimpiarMes: () => void;
 }
 
-export default function Header({ onShowFav, onLimpiarMes }: HeaderProps) {
+export default function Header({ onShowFav, onLimpiarMes }: Props) {
 	const { perfil } = useAuth();
 	const { mes, año, setMes, setAño } = useFecha();
 
@@ -40,6 +40,7 @@ export default function Header({ onShowFav, onLimpiarMes }: HeaderProps) {
 				onMesChange={setMes}
 				onAñoChange={setAño}
 			/>
+
 		</header>
 	);
 }
