@@ -13,12 +13,30 @@ import {
 	CartesianGrid
 } from "recharts";
 
+// Tooltip personalizado
+function CustomTooltip({ active, payload, label }: any) {
+	if (active && payload && payload.length) {
+		return (
+			<div
+				className="bg-white shadow-lg border rounded-lg p-3"
+				style={{ color: "#006C7A" }}
+			>
+				<p className="font-semibold">{label}</p>
+				<p>
+					Total: {payload[0].value} €
+				</p>
+			</div>
+		);
+	}
+	return null;
+}
+
+
 export default function Evolucion() {
 	const { user } = useAuth();
 	const { año, setAño } = useFecha();
 
 	const [data, setData] = useState<any[]>([]);
-	const [loading, setLoading] = useState(true);
 
 	const meses = [
 		"Enero", "Febrero", "Marzo", "Abril",
@@ -31,7 +49,7 @@ export default function Evolucion() {
 	}, [user, año]);
 
 	async function load() {
-		setLoading(true);
+
 
 		const { data } = await supabase
 			.from("historicobalance")
@@ -47,7 +65,6 @@ export default function Evolucion() {
 			})) ?? []
 		);
 
-		setLoading(false);
 	}
 
 	async function updateValue(id: string, value: number) {
@@ -98,7 +115,10 @@ export default function Evolucion() {
 								<CartesianGrid strokeDasharray="3 3" opacity={0.2} />
 								<XAxis dataKey="etiqueta" tick={{ fill: "#006C7A" }} />
 								<YAxis tick={{ fill: "#006C7A" }} />
-								<Tooltip />
+
+								{/* Tooltip personalizado */}
+								<Tooltip content={<CustomTooltip />} />
+
 								<Line
 									type="monotone"
 									dataKey="total"
@@ -109,6 +129,7 @@ export default function Evolucion() {
 								/>
 							</LineChart>
 						</ResponsiveContainer>
+
 					</div>
 				</div>
 
