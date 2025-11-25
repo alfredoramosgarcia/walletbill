@@ -18,7 +18,7 @@ export function usePerfil() {
 		setLoadingPerfil(true);
 
 		// 1. Buscar perfil por user_id
-		const { data: perfilUser, error: errorUser } = await supabase
+		const { data: perfilUser } = await supabase
 			.from("profiles")
 			.select("*")
 			.eq("user_id", user.id)

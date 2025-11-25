@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./hooks/useAuth";
+import { AuthProvider } from "./hooks/useAuth";   // ⬅️ como estaba antes
+import { FechaProvider } from "./context/FechaContext";
 
 import "./index.css";
 
@@ -13,9 +14,6 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import RedirectIfLogged from "./components/auth/RedirectIfLogged";
 
 import MainLayout from "./layouts/MainLayout";
-import { FechaProvider } from "./context/FechaContext";
-
-// Layout sin header
 import AuthLayout from "./layouts/AuthLayout";
 
 export default function App() {
@@ -25,7 +23,7 @@ export default function App() {
 				<BrowserRouter>
 					<Routes>
 
-						{/* ❌ Páginas SIN HEADER */}
+						{/* ❌ Páginas SIN HEADER (como antes) */}
 						<Route element={<AuthLayout />}>
 							<Route
 								path="/login"
@@ -35,6 +33,7 @@ export default function App() {
 									</RedirectIfLogged>
 								}
 							/>
+
 							<Route
 								path="/add"
 								element={
@@ -43,6 +42,7 @@ export default function App() {
 									</ProtectedRoute>
 								}
 							/>
+
 							<Route
 								path="/edit/:id"
 								element={
@@ -53,7 +53,7 @@ export default function App() {
 							/>
 						</Route>
 
-						{/* ✅ Páginas CON HEADER */}
+						{/* ✅ Páginas CON HEADER (como antes) */}
 						<Route
 							element={
 								<ProtectedRoute>

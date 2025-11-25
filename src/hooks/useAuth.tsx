@@ -6,48 +6,51 @@ import {
 	type ReactNode,
 } from "react";
 import { supabase } from "../supabase/client";
+import type { User } from "@supabase/supabase-js";
+import type { Perfil } from "../types/Perfil";
 
 interface AuthContextType {
-	user: any;
+	user: User | null;
+	perfil: Perfil | null;
 	loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
 	user: null,
+	perfil: null,
 	loading: true,
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-	const [user, setUser] = useState<any>(null);
+	const [user, setUser] = useState<User | null>(null);
+	const [perfil, setPerfil] = useState<Perfil | null>(null);
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
-		let mounted = true;
+		async function load() {
+			const { data } = await supabase.auth.getUser();
+			const u = data?.user ?? null;
 
-		// Obtener usuario actual al cargar
-		supabase.auth.getUser().then(({ data }) => {
-			if (!mounted) return;
-			setUser(data?.user ?? null);
-			setLoading(false);
-		});
+			setUser(u);
 
-		// Escuchar login/logout
-		const { data: listener } = supabase.auth.onAuthStateChange(
-			(_event, session) => {
-				if (!mounted) return;
-				setUser(session?.user ?? null);
+			if (u) {
+				const { data: p } = await supabase
+					.from("profiles") // 👈 tu tabla real
+					.select("*")
+					.eq("id", u.id)  // 👈 id = UID del usuario
+					.single();
+
+				setPerfil(p ?? null);
 			}
-		);
 
-		// Cleanup
-		return () => {
-			mounted = false;
-			listener.subscription.unsubscribe();
-		};
+			setLoading(false);
+		}
+
+		load();
 	}, []);
 
 	return (
-		<AuthContext.Provider value={{ user, loading }}>
+		<AuthContext.Provider value={{ user, perfil, loading }}>
 			{children}
 		</AuthContext.Provider>
 	);

@@ -1,36 +1,58 @@
 import { supabase } from "../../supabase/client";
-import type { Perfil } from "../../types/Perfil";
 import DesktopMenu from "./DesktopMenu";
+import MesAnoSelector from "../../components/header/MesAnoSelector";
+import type { Perfil } from "../../types/Perfil";
 
 interface Props {
 	perfil: Perfil | null;
 	guardarPorcentajes: () => void;
 	onShowFav: () => void;
+	mes: number;
+	año: number;
+	onMesChange: (n: number) => void;
+	onAñoChange: (n: number) => void;
 }
 
-export default function HeaderDesktop({ perfil, guardarPorcentajes, onShowFav }: Props) {
+export default function HeaderDesktop({
+	perfil,
+	guardarPorcentajes,
+	onShowFav,
+	mes,
+	año,
+	onMesChange,
+	onAñoChange
+}: Props) {
 	return (
-		<div className="hidden md:flex w-full items-center justify-between mt-6">
+		<div className="hidden md:grid w-full grid-cols-3 items-center py-4 px-7">
 
-			{/* MENÚ DESPLEGABLE (PC) */}
-			<DesktopMenu
-				onAdd={() => (window.location.href = "/add")}
-				onSavePercents={guardarPorcentajes}
-				onShowFav={onShowFav}
-			/>
+			{/* IZQUIERDA → Menú */}
+			<div className="flex justify-start">
+				<DesktopMenu
+					onAdd={() => (window.location.href = "/add")}
+					onSavePercents={guardarPorcentajes}
+					onShowFav={onShowFav}
+				/>
+			</div>
 
-			{/* TEXTO DE BIENVENIDA */}
-			<div className="flex items-center gap-4">
+			{/* CENTRO → Selector de mes/año */}
+			<div className="flex justify-center">
+				<MesAnoSelector
+					mes={mes}
+					año={año}
+					onMesChange={onMesChange}
+					onAñoChange={onAñoChange}
+				/>
+			</div>
+
+			{/* DERECHA → Bienvenida + Cerrar sesión (juntos, alineados) */}
+			<div className="flex justify-end items-center gap-3">
 
 				{perfil && (
-					<div className="flex items-center gap-2">
-						<span className="font-semibold text-[#006C7A] text-lg">
-							Bienvenido, {perfil.nombre}
-						</span>
-					</div>
+					<span className="font-semibold text-[#006C7A] text-lg">
+						Bienvenido, {perfil.nombre}
+					</span>
 				)}
 
-				{/* CERRAR SESIÓN (PC) */}
 				<button
 					onClick={async () => {
 						await supabase.auth.signOut();
@@ -40,6 +62,7 @@ export default function HeaderDesktop({ perfil, guardarPorcentajes, onShowFav }:
 				>
 					Cerrar sesión
 				</button>
+
 			</div>
 
 		</div>

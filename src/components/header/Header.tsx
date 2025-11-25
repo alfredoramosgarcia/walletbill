@@ -1,59 +1,43 @@
 import { useState } from "react";
-import HeaderDesktop from "./HeaderDesktop";
 import HeaderMobile from "./HeaderMobile";
-import MesAnoSelector from "./MesAnoSelector";
-import { usePerfil } from "../../hooks/usePerfil";
-import { useDashboardHeaderActions } from "../../hooks/useDashboardHeaderActions";
-
+import HeaderDesktop from "./HeaderDesktop";
+import { useAuth } from "../../hooks/useAuth";
 import { useFecha } from "../../context/FechaContext";
 
-export default function Header() {
-	const { mes, setMes, año, setAño } = useFecha();
+interface Props {
+	onShowFav: () => void;
+}
 
-	const { perfil } = usePerfil();
-	const { guardarPorcentajes, abrirFavoritosModal } = useDashboardHeaderActions();
+export default function Header({ onShowFav }: Props) {
+	const { perfil } = useAuth(); // 👈 YA VIENE DE Supabase
+	const { mes, año, setMes, setAño } = useFecha();
 
-
-	// menú mobile
 	const [menuOpen, setMenuOpen] = useState(false);
 
 	return (
-		<header className="w-full py-4 px-4 md:px-6 relative">
-
-			{/* DESKTOP */}
-			<div className="hidden md:flex items-center justify-between relative">
-
-				{/* MENÚ (IZQUIERDA) */}
-				<HeaderDesktop
-					perfil={perfil}
-					guardarPorcentajes={guardarPorcentajes}
-					onShowFav={abrirFavoritosModal}
-				/>
-
-				{/* SELECTOR CENTRADO */}
-				<div className="absolute left-1/2 -translate-x-1/2">
-					<MesAnoSelector
-						mes={mes}
-						año={año}
-						onMesChange={setMes}
-						onAñoChange={setAño}
-					/>
-				</div>
-
-			</div>
-
-			{/* MOBILE */}
+		<header className="w-full">
 			<HeaderMobile
-				perfil={perfil}
+				perfil={perfil} // 👈 Perfil
 				menuOpen={menuOpen}
 				setMenuOpen={setMenuOpen}
-				guardarPorcentajes={guardarPorcentajes}
-				onShowFav={abrirFavoritosModal}
+				guardarPorcentajes={() => { }}
+				onShowFav={onShowFav}
 				mes={mes}
 				año={año}
 				onMesChange={setMes}
 				onAñoChange={setAño}
 			/>
+
+			<HeaderDesktop
+				perfil={perfil}
+				guardarPorcentajes={() => { }}
+				onShowFav={onShowFav}
+				mes={mes}
+				año={año}
+				onMesChange={setMes}
+				onAñoChange={setAño}
+			/>
+
 		</header>
 	);
 }

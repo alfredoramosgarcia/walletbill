@@ -29,7 +29,7 @@ export default function Dashboard() {
 	const {
 		porcentajes,
 		updatePercent,
-		guardar,
+		//guardar,
 		loading
 	} = usePorcentajesDB(
 		user?.id ?? null,
@@ -48,10 +48,10 @@ export default function Dashboard() {
 
 	const totalMes = totalIngresos - Math.abs(totalGastos);
 
-	async function guardarPorcentajes() {
+	/*async function guardarPorcentajes() {
 		await guardar();
 		setAlertMsg("Porcentajes guardados ✔️");
-	}
+	}*/
 
 	return (
 		<div className="min-h-screen bg-[#D9ECEA] p-4 md:p-6">

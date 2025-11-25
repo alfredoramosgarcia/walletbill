@@ -7,10 +7,9 @@ interface Props {
 }
 
 export default function DesktopMenu({ onAdd, onSavePercents, onShowFav }: Props) {
-	const [open, setOpen] = useState(false);
+	const [open, setOpen] = useState<boolean>(false);
 	const menuRef = useRef<HTMLDivElement>(null);
 
-	// Cerrar si clicas fuera
 	useEffect(() => {
 		function handleClickOutside(e: MouseEvent) {
 			if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -31,9 +30,7 @@ export default function DesktopMenu({ onAdd, onSavePercents, onShowFav }: Props)
 			</button>
 
 			{open && (
-				<div
-					className="absolute left-0 mt-2 w-56 bg-white shadow-xl rounded-xl p-3 z-[999] border border-gray-200 animate-fadeIn"
-				>
+				<div className="absolute left-0 mt-2 w-56 bg-white shadow-xl rounded-xl p-3 z-[999] border border-gray-200 animate-fadeIn">
 					<button
 						onClick={() => {
 							onAdd();
