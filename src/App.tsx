@@ -52,7 +52,18 @@ export default function App() {
 									</ProtectedRoute>
 								}
 							/>
+
+							<Route
+								path="/evolucion"
+								element={
+									<ProtectedRoute>
+										<Evolucion />
+									</ProtectedRoute>
+								}
+							/>
+
 						</Route>
+
 
 						{/* ✅ Páginas CON header (MainLayout) */}
 						<Route
@@ -66,7 +77,7 @@ export default function App() {
 							<Route path="/perfil" element={<Perfil />} />
 
 							{/* ⭐ NUEVA PÁGINA EVOLUCIÓN */}
-							<Route path="/evolucion" element={<Evolucion />} />
+
 						</Route>
 
 						{/* Redirección por defecto */}

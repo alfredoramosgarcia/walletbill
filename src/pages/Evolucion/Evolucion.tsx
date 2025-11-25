@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../supabase/client";
 import { useAuth } from "../../hooks/useAuth";
 import { useFecha } from "../../context/FechaContext";
+import { HomeIcon } from "@heroicons/react/24/solid";
+import { Link } from "react-router-dom";
 
 import {
 	LineChart,
@@ -79,16 +81,27 @@ export default function Evolucion() {
 	return (
 		<div className="p-6 bg-[#D9ECEA] min-h-screen">
 
-			<h1 className="text-3xl font-bold text-center text-[#006C7A] mb-6">
-				📈 Evolución financiera
-			</h1>
+			{/* ===== HEADER CUSTOM SIN LAYOUT ===== */}
+			<div className="flex items-center justify-between mb-6">
 
-			{/* FILTRO AÑO */}
-			<div className="flex justify-center mb-5">
+				{/* ICONO HOME */}
+				<Link
+					to="/"
+					className="p-2 rounded-lg bg-transparent hover:bg-[#0097A710] transition"
+				>
+					<HomeIcon className="w-7 h-7 text-[#006C7A]" />
+				</Link>
+
+				{/* ⭐ TÍTULO */}
+				<h1 className="text-2xl md:text-3xl font-bold text-[#006C7A] text-center flex-1">
+					📈 Evolución financiera
+				</h1>
+
+				{/* 🔽 SELECT AÑO */}
 				<select
 					value={año}
 					onChange={(e) => setAño(Number(e.target.value))}
-					className="border rounded-lg px-4 py-2 shadow bg-white text-[#006C7A] font-semibold"
+					className="border rounded-lg px-3 py-2 shadow bg-white text-[#006C7A] font-semibold ml-4"
 				>
 					{Array.from({ length: 10 }).map((_, i) => (
 						<option key={i} value={2025 + i}>
@@ -96,6 +109,7 @@ export default function Evolucion() {
 						</option>
 					))}
 				</select>
+
 			</div>
 
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
