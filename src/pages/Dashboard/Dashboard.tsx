@@ -9,7 +9,6 @@ import { useCategorias } from "../../hooks/useCategorias";
 import { useFecha } from "../../context/FechaContext";
 import { useMovimientosRefresh } from "../../context/MovimientoContext";
 
-import { limpiarMes as limpiarMesDB } from "../../utils/limpiarMes";
 
 import DynamicCategoryBox from "../../components/dashboard/DynamicCategoryBox";
 import TotalesMes from "../../components/dashboard/TotalesMes";
@@ -22,7 +21,7 @@ import type { Favorito } from "../../types/Favorito";
 export default function Dashboard() {
 	const navigate = useNavigate();
 
-	const { mes, año, setMes, setAño } = useFecha();
+	const { mes, año, } = useFecha();
 	const { user } = useAuth();
 
 	const { refreshKey, refreshMovimientos } = useMovimientosRefresh();
@@ -94,15 +93,6 @@ export default function Dashboard() {
 		setShowFavModal(false);
 	}
 
-	/* ----------------------------- LIMPIAR MES ----------------------------- */
-	async function onLimpiarMes(): Promise<void> {
-		if (!user) return;
-
-		await limpiarMesDB(mes, año, user.id);
-		refreshMovimientos();
-		navigate("/");
-		setAlertMsg("Mes limpiado correctamente.");
-	}
 
 	/* ----------------------------- RENDER UI ----------------------------- */
 

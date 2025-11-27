@@ -11,7 +11,6 @@ interface Props {
 
 export default function DesktopMenu({
 	onAdd,
-	onSavePercents,
 	onShowFav,
 	onLimpiarMes
 }: Props) {

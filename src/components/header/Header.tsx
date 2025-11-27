@@ -21,7 +21,6 @@ export default function Header({ onShowFav, onLimpiarMes }: Props) {
 				perfil={perfil}
 				menuOpen={menuOpen}
 				setMenuOpen={setMenuOpen}
-				guardarPorcentajes={() => { }}
 				onShowFav={onShowFav}
 				onLimpiarMes={onLimpiarMes}
 				mes={mes}
@@ -32,7 +31,6 @@ export default function Header({ onShowFav, onLimpiarMes }: Props) {
 
 			<HeaderDesktop
 				perfil={perfil}
-				guardarPorcentajes={() => { }}
 				onShowFav={onShowFav}
 				onLimpiarMes={onLimpiarMes}
 				mes={mes}
