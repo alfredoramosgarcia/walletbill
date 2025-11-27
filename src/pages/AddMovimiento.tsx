@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useFecha } from "../context/FechaContext";
 
 export default function AddMovimiento() {
 	const navigate = useNavigate();
+
+	// 🟩 Guardamos el contexto como objeto completo
+	const fechaCtx = useFecha();
+	const { setMes, setAño } = fechaCtx;
 
 	const [tipo, setTipo] = useState("gasto");
 	const [categoria, setCategoria] = useState("");
@@ -13,15 +18,9 @@ export default function AddMovimiento() {
 	const [cantidad, setCantidad] = useState("");
 	const [favorito, setFavorito] = useState(false);
 
-	const mes = new Date().getMonth() + 1;
-	const año = new Date().getFullYear();
-
 	// 🟩 FORMATEAR LABEL BONITO
 	function formatearLabel(nombre: string) {
-		// Reemplaza camelCase por espacios
 		const conEspacios = nombre.replace(/([a-z])([A-Z])/g, "$1 $2");
-
-		// Capitaliza cada palabra
 		return conEspacios
 			.split(" ")
 			.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
@@ -49,20 +48,24 @@ export default function AddMovimiento() {
 		cargarCategorias(tipo);
 	}, [tipo]);
 
-	// 🟩 GUARDAR MOVIMIENTO
+	// 🟩 GUARDAR MOVIMIENTO — FECHA LEÍDA SIEMPRE EN ESTE MOMENTO
 	async function guardarMovimiento() {
 		const { data: userData } = await supabase.auth.getUser();
 		const user = userData?.user;
 		if (!user) return alert("No hay usuario");
 
+		// 🟩 LEER SIEMPRE LA FECHA ACTUALIZADA JUSTO ANTES DE INSERTAR
+		const mesActual = fechaCtx.mes;
+		const añoActual = fechaCtx.año;
+
 		const { error } = await supabase.from("movimientos").insert({
 			user_id: user.id,
 			tipo,
-			categoria, // guardamos el valor original, NO el formateado
+			categoria,
 			concepto,
 			cantidad: Number(cantidad),
-			mes: mes.toString(),
-			año,
+			mes: mesActual.toString(),
+			año: añoActual,
 		});
 
 		if (error) {
@@ -70,6 +73,7 @@ export default function AddMovimiento() {
 			return;
 		}
 
+		// Guardar como favorito
 		if (favorito) {
 			await supabase.from("favoritos").upsert({
 				user_id: user.id,
@@ -79,6 +83,10 @@ export default function AddMovimiento() {
 				cantidad: Number(cantidad),
 			});
 		}
+
+		// 🟩 ACTUALIZAR CONTEXTO PARA QUE EL DASHBOARD VAYA AL MES CORRECTO
+		setMes(mesActual);
+		setAño(añoActual);
 
 		navigate("/");
 	}

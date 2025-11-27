@@ -1,8 +1,9 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../../supabase/client";
 import MesAnoSelector from "../../components/header/MesAnoSelector";
 import type { Perfil } from "../../types/Perfil";
 import { HomeIcon } from "@heroicons/react/24/solid";
+import { useFecha } from "../../context/FechaContext";
 
 interface Props {
 	perfil: Perfil | null;
@@ -29,6 +30,11 @@ export default function HeaderMobile({
 	onMesChange,
 	onAñoChange
 }: Props) {
+
+	// 🟩 Los hooks SIEMPRE VAN AQUÍ
+	const navigate = useNavigate();
+	const { setMes, setAño } = useFecha();
+
 	return (
 		<div className="md:hidden flex flex-col items-center pt-2 w-full">
 
@@ -61,12 +67,17 @@ export default function HeaderMobile({
 			{menuOpen && (
 				<div className="w-full bg-white shadow-xl rounded-xl p-4 flex flex-col gap-3 animate-fadeIn">
 
-					<Link
-						to="/add"
+					{/* 🟩 ESTE ERA EL PROBLEMA */}
+					<button
+						onClick={() => {
+							setMes(mes);
+							setAño(año);
+							navigate("/add");
+						}}
 						className="bg-[#0097A7] text-white px-5 py-3 rounded-lg shadow text-center font-semibold hover:bg-[#007c8b]"
 					>
 						+ Añadir Movimiento
-					</Link>
+					</button>
 
 					<button
 						onClick={guardarPorcentajes}
@@ -89,9 +100,8 @@ export default function HeaderMobile({
 						🧹 Limpiar mes
 					</button>
 
-					{/* NUEVO: Botón EVOLUCIÓN con estilo WalletBill */}
 					<button
-						onClick={() => (window.location.href = "/evolucion")}
+						onClick={() => navigate("/evolucion")}
 						className="
 							px-5 py-3 rounded-lg shadow font-semibold
 							border border-[#0097A7] text-[#006C7A] bg-white

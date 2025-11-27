@@ -2,8 +2,9 @@ import { supabase } from "../../supabase/client";
 import DesktopMenu from "./DesktopMenu";
 import MesAnoSelector from "../../components/header/MesAnoSelector";
 import type { Perfil } from "../../types/Perfil";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { HomeIcon } from "@heroicons/react/24/solid";
+import { useFecha } from "../../context/FechaContext";
 
 interface Props {
 	perfil: Perfil | null;
@@ -26,6 +27,11 @@ export default function HeaderDesktop({
 	onMesChange,
 	onAñoChange
 }: Props) {
+
+	// 🟩 LOS HOOKS VAN SIEMPRE DENTRO
+	const navigate = useNavigate();
+	const { setMes, setAño } = useFecha();
+
 	return (
 		<div className="hidden md:flex w-full items-center justify-between py-4 px-7">
 
@@ -33,7 +39,11 @@ export default function HeaderDesktop({
 			<div className="flex items-center gap-3">
 
 				<DesktopMenu
-					onAdd={() => (window.location.href = "/add")}
+					onAdd={() => {
+						setMes(mes);
+						setAño(año);
+						navigate("/add");
+					}}
 					onSavePercents={guardarPorcentajes}
 					onShowFav={onShowFav}
 					onLimpiarMes={onLimpiarMes}
@@ -41,9 +51,9 @@ export default function HeaderDesktop({
 					año={año}
 				/>
 
-				{/* BOTÓN EVOLUCIÓN — estilo WalletBill */}
+				{/* BOTÓN EVOLUCIÓN */}
 				<button
-					onClick={() => (window.location.href = "/evolucion")}
+					onClick={() => navigate("/evolucion")}
 					className="
 						px-5 py-3 rounded-lg shadow 
 						font-semibold border border-[#0097A7]
@@ -55,9 +65,8 @@ export default function HeaderDesktop({
 
 			</div>
 
+			{/* DERECHA → Home + Bienvenida */}
 			<div className="flex items-center gap-3">
-
-				{/* ICONO HOME TRANSPARENTE */}
 				<Link
 					to="/"
 					className="p-1 rounded-lg bg-transparent hover:bg-[#0097A710] transition"
@@ -65,13 +74,10 @@ export default function HeaderDesktop({
 					<HomeIcon className="w-6 h-6 text-[#006C7A]" />
 				</Link>
 
-				{/* TEXTO DE BIENVENIDA */}
 				<span className="font-semibold text-lg text-[#006C7A]">
 					Bienvenido, {perfil?.nombre}
 				</span>
-
 			</div>
-
 
 			{/* DERECHA → Selector y cerrar sesión */}
 			<div className="flex items-center gap-4">
@@ -85,7 +91,7 @@ export default function HeaderDesktop({
 				<button
 					onClick={async () => {
 						await supabase.auth.signOut();
-						window.location.href = "/";
+						navigate("/");
 					}}
 					className="bg-white/80 text-red-600 font-semibold px-6 py-3 rounded shadow hover:bg-red-50"
 				>

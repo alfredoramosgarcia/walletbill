@@ -1,21 +1,62 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabase/client";
 import { useParams, useNavigate } from "react-router-dom";
+import { useFecha } from "../context/FechaContext";
+
+// Tipos TS
+interface Categoria {
+	id: number;
+	nombre: string;
+	tipo: "gasto" | "ingreso";
+}
+
+interface Movimiento {
+	id: number;
+	user_id: string;
+	tipo: "gasto" | "ingreso";
+	categoria: string;
+	concepto: string;
+	cantidad: number;
+	mes: string;
+	año: number;
+}
 
 export default function EditMovimiento() {
-	const { id } = useParams();
+	const { id } = useParams<{ id: string }>();
 	const navigate = useNavigate();
 
-	const [mov, setMov] = useState<any>(null);
+	// 🟩 Ahora SÍ usamos el contexto
+	const { setMes, setAño } = useFecha();
+
+	const [mov, setMov] = useState<Movimiento | null>(null);
 	const [favorito, setFavorito] = useState(false);
 	const [favId, setFavId] = useState<string | null>(null);
+	const [categorias, setCategorias] = useState<Categoria[]>([]);
+
+	// Meses disponibles (1–12)
+	const meses = [
+		"1", "2", "3", "4", "5", "6",
+		"7", "8", "9", "10", "11", "12"
+	];
+
+	// Años para elegir (por ejemplo 2020–2030)
+	const años = Array.from({ length: 11 }, (_, i) => 2020 + i);
+
+	// Formatear label
+	function formatearLabel(nombre: string) {
+		const conEspacios = nombre.replace(/([a-z])([A-Z])/g, "$1 $2");
+		return conEspacios
+			.split(" ")
+			.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+			.join(" ");
+	}
 
 	useEffect(() => {
 		cargar();
 	}, []);
 
 	// =====================================================
-	// CARGAR MOVIMIENTO Y FAVORITO
+	// CARGAR MOVIMIENTO + FAVORITO
 	// =====================================================
 	async function cargar() {
 		const { data } = await supabase
@@ -24,9 +65,14 @@ export default function EditMovimiento() {
 			.eq("id", id)
 			.single();
 
-		setMov(data);
+		if (!data) return;
 
-		// Buscar favorito SOLO por user_id + concepto + categoria
+		setMov(data as Movimiento);
+
+		// Cargar categorías según el tipo actual
+		await cargarCategorias(data.tipo, data.categoria);
+
+		// Revisar favorito
 		const { data: fav } = await supabase
 			.from("favoritos")
 			.select("*")
@@ -37,15 +83,38 @@ export default function EditMovimiento() {
 			.single();
 
 		setFavorito(!!fav);
-		setFavId(fav?.id || null);
+		setFavId(fav?.id ?? null);
 	}
 
+	// =====================================================
+	// CARGAR CATEGORÍAS SEGÚN TIPO
+	// =====================================================
+	async function cargarCategorias(tipoSel: "gasto" | "ingreso", categoriaActual?: string) {
+		const { data, error } = await supabase
+			.from("categorias")
+			.select("*")
+			.eq("tipo", tipoSel)
+			.order("nombre", { ascending: true });
+
+		if (error || !data) return;
+
+		const lista = data as Categoria[];
+		setCategorias(lista);
+
+		// Mantener categoría actual si existe
+		if (categoriaActual && lista.some((c) => c.nombre === categoriaActual)) {
+			setMov((m) => (m ? { ...m, categoria: categoriaActual } : m));
+		} else {
+			setMov((m) => (m ? { ...m, categoria: lista[0]?.nombre ?? "" } : m));
+		}
+	}
 
 	// =====================================================
 	// GUARDAR CAMBIOS
 	// =====================================================
 	async function guardar() {
-		// 1) Actualizar movimiento
+		if (!mov) return;
+
 		await supabase
 			.from("movimientos")
 			.update({
@@ -53,41 +122,41 @@ export default function EditMovimiento() {
 				concepto: mov.concepto,
 				tipo: mov.tipo,
 				cantidad: Number(mov.cantidad),
+				mes: mov.mes,
+				año: mov.año,
 			})
-			.eq("id", id);
+			.eq("id", mov.id);
 
-		// 2) Si está marcado como favorito → upsert
+		// Actualizar favorito
 		if (favorito) {
 			await supabase.from("favoritos").upsert({
-				id: favId || undefined, // si existe, lo actualiza
+				id: favId ?? undefined,
 				user_id: mov.user_id,
 				tipo: mov.tipo,
 				categoria: mov.categoria,
 				concepto: mov.concepto,
 				cantidad: Number(mov.cantidad),
 			});
-		}
-
-		// 3) Si NO está marcado → eliminar usando el ID real
-		else if (favId) {
+		} else if (favId) {
 			await supabase.from("favoritos").delete().eq("id", favId);
 		}
+
+		// 🟩 Cambiar el mes/año global para que el dashboard vaya al mes nuevo
+		setMes(Number(mov.mes));
+		setAño(mov.año);
 
 		navigate("/");
 	}
 
-
 	// =====================================================
-	// BORRAR MOVIMIENTO
+	// BORRAR
 	// =====================================================
 	async function borrar() {
 		const { data: sessionData } = await supabase.auth.getSession();
 		const session = sessionData?.session;
 
-		// Borrar movimiento
 		await supabase.from("movimientos").delete().eq("id", id);
 
-		// Mantener sesión activa (iOS issue workaround)
 		if (session) {
 			await supabase.auth.setSession({
 				access_token: session.access_token,
@@ -111,6 +180,7 @@ export default function EditMovimiento() {
 	// =====================================================
 	return (
 		<div className="h-screen p-6 bg-[#E0F2F1]">
+
 			<div className="flex justify-between items-center mb-4">
 				<h1 className="text-xl font-bold text-[#006C7A]">Editar Movimiento</h1>
 
@@ -122,34 +192,77 @@ export default function EditMovimiento() {
 				</button>
 			</div>
 
-			<input
+			{/* TIPO */}
+			<select
+				className="w-full p-3 border rounded mb-3"
+				value={mov.tipo}
+				onChange={(e) => {
+					const nuevoTipo = e.target.value as "gasto" | "ingreso";
+					setMov({ ...mov, tipo: nuevoTipo });
+					cargarCategorias(nuevoTipo, mov.categoria);
+				}}
+			>
+				<option value="gasto">Gasto</option>
+				<option value="ingreso">Ingreso</option>
+			</select>
+
+			{/* CATEGORÍA */}
+			<select
 				className="w-full p-3 border rounded mb-3"
 				value={mov.categoria}
 				onChange={(e) => setMov({ ...mov, categoria: e.target.value })}
-			/>
+			>
+				{categorias.map((c) => (
+					<option key={c.id} value={c.nombre}>
+						{formatearLabel(c.nombre)}
+					</option>
+				))}
+			</select>
 
+			{/* CONCEPTO */}
 			<input
 				className="w-full p-3 border rounded mb-3"
 				value={mov.concepto}
 				onChange={(e) => setMov({ ...mov, concepto: e.target.value })}
 			/>
 
-			<select
-				className="w-full p-3 border rounded mb-3"
-				value={mov.tipo}
-				onChange={(e) => setMov({ ...mov, tipo: e.target.value })}
-			>
-				<option value="gasto">Gasto</option>
-				<option value="ingreso">Ingreso</option>
-			</select>
-
+			{/* CANTIDAD */}
 			<input
 				className="w-full p-3 border rounded mb-3"
 				type="number"
 				value={mov.cantidad}
-				onChange={(e) => setMov({ ...mov, cantidad: e.target.value })}
+				onChange={(e) => setMov({ ...mov, cantidad: Number(e.target.value) })}
 			/>
 
+			{/* MES */}
+			<select
+				className="w-full p-3 border rounded mb-3"
+				value={mov.mes}
+				onChange={(e) => setMov({ ...mov, mes: e.target.value })}
+			>
+				{meses.map((m) => (
+					<option key={m} value={m}>
+						Mes {m}
+					</option>
+				))}
+			</select>
+
+			{/* AÑO */}
+			<select
+				className="w-full p-3 border rounded mb-3"
+				value={mov.año}
+				onChange={(e) =>
+					setMov({ ...mov, año: Number(e.target.value) })
+				}
+			>
+				{años.map((a) => (
+					<option key={a} value={a}>
+						{a}
+					</option>
+				))}
+			</select>
+
+			{/* FAVORITO */}
 			<label className="flex items-center gap-2 mb-4">
 				<input
 					type="checkbox"
@@ -159,6 +272,7 @@ export default function EditMovimiento() {
 				<span className="font-semibold text-[#006C7A]">⭐ Guardar como favorito</span>
 			</label>
 
+			{/* BOTONES */}
 			<div className="flex flex-col gap-3 mt-4">
 				<button
 					onClick={guardar}
