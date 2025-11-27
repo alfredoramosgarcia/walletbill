@@ -1,6 +1,10 @@
 import { supabase } from "../supabase/client";
 
-export async function limpiarMes(mes: number, año: number, userId: string) {
+export async function limpiarMes(
+	mes: number,
+	año: number,
+	userId: string
+) {
 	const { error } = await supabase
 		.from("movimientos")
 		.delete()

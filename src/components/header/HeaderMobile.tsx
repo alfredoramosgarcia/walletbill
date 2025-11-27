@@ -3,7 +3,6 @@ import { supabase } from "../../supabase/client";
 import MesAnoSelector from "../../components/header/MesAnoSelector";
 import type { Perfil } from "../../types/Perfil";
 import { HomeIcon } from "@heroicons/react/24/solid";
-import { useFecha } from "../../context/FechaContext";
 
 interface Props {
 	perfil: Perfil | null;
@@ -31,18 +30,13 @@ export default function HeaderMobile({
 	onAñoChange
 }: Props) {
 
-	// 🟩 Los hooks SIEMPRE VAN AQUÍ
 	const navigate = useNavigate();
-	const { setMes, setAño } = useFecha();
 
 	return (
 		<div className="md:hidden flex flex-col items-center pt-2 w-full">
 
-			{/* ICONO HOME */}
-			<Link
-				to="/"
-				className="p-2 rounded-lg bg-transparent hover:bg-[#0097A710] transition"
-			>
+			{/* HOME */}
+			<Link to="/" className="p-2 rounded-lg hover:bg-[#0097A710] transition">
 				<HomeIcon className="w-7 h-7 text-[#006C7A]" />
 			</Link>
 
@@ -63,58 +57,72 @@ export default function HeaderMobile({
 				☰ Menú
 			</button>
 
-			{/* Contenido menú */}
+			{/* CONTENIDO MENÚ */}
 			{menuOpen && (
 				<div className="w-full bg-white shadow-xl rounded-xl p-4 flex flex-col gap-3 animate-fadeIn">
 
-					{/* 🟩 ESTE ERA EL PROBLEMA */}
+					{/* AÑADIR MOVIMIENTO */}
 					<button
-						onClick={() => {
-							setMes(mes);
-							setAño(año);
-							navigate("/add");
-						}}
 						className="bg-[#0097A7] text-white px-5 py-3 rounded-lg shadow text-center font-semibold hover:bg-[#007c8b]"
+						onClick={() => {
+							// Dashboard hará refresh y navegará al volver
+							navigate("/add");
+							setMenuOpen(false);
+						}}
 					>
 						+ Añadir Movimiento
 					</button>
 
+					{/* GUARDAR PORCENTAJES */}
 					<button
-						onClick={guardarPorcentajes}
+						onClick={() => {
+							guardarPorcentajes();
+							setMenuOpen(false);
+						}}
 						className="bg-[#006C7A] text-white px-5 py-3 rounded-lg shadow text-center font-semibold hover:bg-[#005663]"
 					>
 						Guardar Porcentajes
 					</button>
 
+					{/* FAVORITOS */}
 					<button
-						onClick={onShowFav}
+						onClick={() => {
+							onShowFav();
+							setMenuOpen(false);
+						}}
 						className="bg-yellow-500 text-white px-5 py-3 rounded-lg shadow text-center font-semibold hover:bg-yellow-600"
 					>
 						⭐ Favoritos
 					</button>
 
+					{/* LIMPIAR MES */}
 					<button
-						onClick={onLimpiarMes}
+						onClick={() => {
+							// Dashboard se encarga de refrescar y navegar
+							onLimpiarMes();
+							setMenuOpen(false);
+						}}
 						className="bg-red-500 text-white px-5 py-3 rounded-lg shadow text-center font-semibold hover:bg-red-600"
 					>
 						🧹 Limpiar mes
 					</button>
 
+					{/* EVOLUCIÓN */}
 					<button
-						onClick={() => navigate("/evolucion")}
-						className="
-							px-5 py-3 rounded-lg shadow font-semibold
-							border border-[#0097A7] text-[#006C7A] bg-white
-							hover:bg-[#E0F4F5] transition text-center
-						"
+						onClick={() => {
+							navigate("/evolucion");
+							setMenuOpen(false);
+						}}
+						className="px-5 py-3 rounded-lg shadow font-semibold border border-[#0097A7] text-[#006C7A] bg-white hover:bg-[#E0F4F5]"
 					>
 						📈 Evolución
 					</button>
 
+					{/* CERRAR SESIÓN */}
 					<button
 						onClick={async () => {
 							await supabase.auth.signOut();
-							window.location.href = "/";
+							navigate("/");
 						}}
 						className="bg-gray-500 text-white px-5 py-3 rounded-lg shadow text-center font-semibold hover:bg-gray-600"
 					>
@@ -124,7 +132,7 @@ export default function HeaderMobile({
 				</div>
 			)}
 
-			{/* Selector Mes/Año */}
+			{/* SELECTOR MES / AÑO */}
 			<MesAnoSelector
 				mes={mes}
 				año={año}

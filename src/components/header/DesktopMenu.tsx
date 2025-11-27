@@ -15,9 +15,11 @@ export default function DesktopMenu({
 	onShowFav,
 	onLimpiarMes
 }: Props) {
+
 	const [open, setOpen] = useState(false);
 	const menuRef = useRef<HTMLDivElement>(null);
 
+	// Cerrar al hacer clic fuera
 	useEffect(() => {
 		function handleClickOutside(e: MouseEvent) {
 			if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -40,9 +42,10 @@ export default function DesktopMenu({
 			{open && (
 				<div className="absolute left-0 mt-2 w-56 bg-white shadow-xl rounded-xl p-3 z-[999] border border-gray-200 animate-fadeIn">
 
+					{/* AÑADIR */}
 					<button
 						onClick={() => {
-							onAdd();
+							onAdd();        // ✔ dashboard o header controla todo
 							setOpen(false);
 						}}
 						className="w-full text-left px-4 py-2 rounded-lg hover:bg-gray-100 font-medium"
@@ -50,6 +53,7 @@ export default function DesktopMenu({
 						➕ Añadir movimiento
 					</button>
 
+					{/* GUARDAR PORCENTAJES */}
 					<button
 						onClick={() => {
 							onSavePercents();
@@ -60,6 +64,7 @@ export default function DesktopMenu({
 						💾 Guardar porcentajes
 					</button>
 
+					{/* FAVORITOS */}
 					<button
 						onClick={() => {
 							onShowFav();
@@ -70,16 +75,16 @@ export default function DesktopMenu({
 						⭐ Favoritos
 					</button>
 
+					{/* LIMPIAR MES */}
 					<button
 						onClick={() => {
-							onLimpiarMes();
+							onLimpiarMes();     // ✔ dashboard controla limpieza y refresh
 							setOpen(false);
 						}}
 						className="w-full text-left px-4 py-2 rounded-lg hover:bg-red-100 font-medium text-red-600"
 					>
 						🧹 Limpiar mes
 					</button>
-
 
 				</div>
 			)}

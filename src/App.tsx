@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
 import { FechaProvider } from "./context/FechaContext";
+import { MovimientosProvider } from "./context/MovimientoContext";
 
 import "./index.css";
 
@@ -21,70 +22,71 @@ export default function App() {
 	return (
 		<AuthProvider>
 			<FechaProvider>
-				<BrowserRouter>
-					<Routes>
 
-						{/* ❌ Páginas SIN header */}
-						<Route element={<AuthLayout />}>
-							<Route
-								path="/login"
-								element={
-									<RedirectIfLogged>
-										<Login />
-									</RedirectIfLogged>
-								}
-							/>
+				{/* 🟩 AÑADIDO: PROVIDER QUE FALTABA */}
+				<MovimientosProvider>
 
+					<BrowserRouter>
+						<Routes>
+
+							{/* ❌ Páginas sin header */}
+							<Route element={<AuthLayout />}>
+								<Route
+									path="/login"
+									element={
+										<RedirectIfLogged>
+											<Login />
+										</RedirectIfLogged>
+									}
+								/>
+
+								<Route
+									path="/add"
+									element={
+										<ProtectedRoute>
+											<AddMovimiento />
+										</ProtectedRoute>
+									}
+								/>
+
+								<Route
+									path="/edit/:id"
+									element={
+										<ProtectedRoute>
+											<EditMovimiento />
+										</ProtectedRoute>
+									}
+								/>
+
+								<Route
+									path="/evolucion"
+									element={
+										<ProtectedRoute>
+											<Evolucion />
+										</ProtectedRoute>
+									}
+								/>
+							</Route>
+
+							{/* ✅ Páginas CON header */}
 							<Route
-								path="/add"
 								element={
 									<ProtectedRoute>
-										<AddMovimiento />
+										<MainLayout />
 									</ProtectedRoute>
 								}
-							/>
+							>
+								<Route path="/" element={<Dashboard />} />
+								<Route path="/perfil" element={<Perfil />} />
+							</Route>
 
-							<Route
-								path="/edit/:id"
-								element={
-									<ProtectedRoute>
-										<EditMovimiento />
-									</ProtectedRoute>
-								}
-							/>
+							{/* Redirección por defecto */}
+							<Route path="*" element={<Navigate to="/" />} />
 
-							<Route
-								path="/evolucion"
-								element={
-									<ProtectedRoute>
-										<Evolucion />
-									</ProtectedRoute>
-								}
-							/>
+						</Routes>
+					</BrowserRouter>
 
-						</Route>
-
-
-						{/* ✅ Páginas CON header (MainLayout) */}
-						<Route
-							element={
-								<ProtectedRoute>
-									<MainLayout />
-								</ProtectedRoute>
-							}
-						>
-							<Route path="/" element={<Dashboard />} />
-							<Route path="/perfil" element={<Perfil />} />
-
-							{/* ⭐ NUEVA PÁGINA EVOLUCIÓN */}
-
-						</Route>
-
-						{/* Redirección por defecto */}
-						<Route path="*" element={<Navigate to="/" />} />
-
-					</Routes>
-				</BrowserRouter>
+				</MovimientosProvider>
 			</FechaProvider>
 		</AuthProvider>
 	);

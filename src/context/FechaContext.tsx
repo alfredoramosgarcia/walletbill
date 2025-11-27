@@ -1,13 +1,43 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
-const FechaContext = createContext<any>(null);
+interface FechaContextType {
+	mes: number;
+	año: number;
+	setMes: (m: number) => void;
+	setAño: (a: number) => void;
+}
+
+const FechaContext = createContext<FechaContextType>({
+	mes: 1,
+	año: 2025,
+	setMes: () => { },
+	setAño: () => { },
+});
 
 export function FechaProvider({ children }: { children: React.ReactNode }) {
-	const [mes, setMes] = useState(new Date().getMonth() + 1);
-	const [año, setAño] = useState(new Date().getFullYear());
+	// Cargar mes/año desde localStorage si existe
+	const storedMes = localStorage.getItem("mes");
+	const storedAño = localStorage.getItem("año");
+
+	const [mes, setMesState] = useState(
+		storedMes ? Number(storedMes) : new Date().getMonth() + 1
+	);
+	const [año, setAñoState] = useState(
+		storedAño ? Number(storedAño) : new Date().getFullYear()
+	);
+
+	function setMes(m: number) {
+		setMesState(m);
+		localStorage.setItem("mes", m.toString());
+	}
+
+	function setAño(a: number) {
+		setAñoState(a);
+		localStorage.setItem("año", a.toString());
+	}
 
 	return (
-		<FechaContext.Provider value={{ mes, setMes, año, setAño }}>
+		<FechaContext.Provider value={{ mes, año, setMes, setAño }}>
 			{children}
 		</FechaContext.Provider>
 	);

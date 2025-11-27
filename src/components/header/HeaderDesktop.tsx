@@ -28,49 +28,38 @@ export default function HeaderDesktop({
 	onAñoChange
 }: Props) {
 
-	// 🟩 LOS HOOKS VAN SIEMPRE DENTRO
 	const navigate = useNavigate();
-	const { setMes, setAño } = useFecha();
 
 	return (
 		<div className="hidden md:flex w-full items-center justify-between py-4 px-7">
 
-			{/* IZQUIERDA → Menú + Evolución */}
+			{/* IZQUIERDA */}
 			<div className="flex items-center gap-3">
 
 				<DesktopMenu
-					onAdd={() => {
-						setMes(mes);
-						setAño(año);
-						navigate("/add");
-					}}
+					onAdd={() => navigate("/add")}
 					onSavePercents={guardarPorcentajes}
 					onShowFav={onShowFav}
+					// ✔ SOLO llamamos la función del Dashboard
 					onLimpiarMes={onLimpiarMes}
 					mes={mes}
 					año={año}
 				/>
 
-				{/* BOTÓN EVOLUCIÓN */}
 				<button
 					onClick={() => navigate("/evolucion")}
-					className="
-						px-5 py-3 rounded-lg shadow 
+					className="px-5 py-3 rounded-lg shadow 
 						font-semibold border border-[#0097A7]
 						text-[#006C7A] bg-white/90 
 						hover:bg-[#E0F4F5] transition"
 				>
 					📈 Evolución
 				</button>
-
 			</div>
 
-			{/* DERECHA → Home + Bienvenida */}
+			{/* CENTRO */}
 			<div className="flex items-center gap-3">
-				<Link
-					to="/"
-					className="p-1 rounded-lg bg-transparent hover:bg-[#0097A710] transition"
-				>
+				<Link to="/" className="p-1 rounded-lg hover:bg-[#0097A710] transition">
 					<HomeIcon className="w-6 h-6 text-[#006C7A]" />
 				</Link>
 
@@ -79,7 +68,7 @@ export default function HeaderDesktop({
 				</span>
 			</div>
 
-			{/* DERECHA → Selector y cerrar sesión */}
+			{/* DERECHA */}
 			<div className="flex items-center gap-4">
 				<MesAnoSelector
 					mes={mes}
@@ -98,6 +87,7 @@ export default function HeaderDesktop({
 					Cerrar sesión
 				</button>
 			</div>
+
 		</div>
 	);
 }
