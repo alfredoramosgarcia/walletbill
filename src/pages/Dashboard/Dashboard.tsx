@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { supabase } from "../../supabase/client";
+import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../hooks/useAuth";
 import { useMovimientos } from "../../hooks/useMovimientos";
 import { useFavoritos } from "../../hooks/useFavoritos";
 import { useCategorias } from "../../hooks/useCategorias";
-import { usePorcentajesDB } from "../../hooks/usePorcentajesDB";
+
 import { useFecha } from "../../context/FechaContext";
 import { useMovimientosRefresh } from "../../context/MovimientoContext";
 
@@ -15,13 +15,16 @@ import DynamicCategoryBox from "../../components/dashboard/DynamicCategoryBox";
 import TotalesMes from "../../components/dashboard/TotalesMes";
 import Alert from "../../components/alerts/Alert";
 import FavoritosModal from "../../components/favoritos/FavoritosModal";
+import { supabase } from "../../supabase/client";
 
 import type { Favorito } from "../../types/Favorito";
 
 export default function Dashboard() {
-	/* ----------------------------- CONTEXTOS ----------------------------- */
-	const { mes, año } = useFecha();
+	const navigate = useNavigate();
+
+	const { mes, año, setMes, setAño } = useFecha();
 	const { user } = useAuth();
+
 	const { refreshKey, refreshMovimientos } = useMovimientosRefresh();
 
 	const [alertMsg, setAlertMsg] = useState("");
@@ -38,18 +41,6 @@ export default function Dashboard() {
 	/* ----------------------------- FAVORITOS ----------------------------- */
 	const { favoritos } = useFavoritos();
 
-	/* ----------------------------- PORCENTAJES ----------------------------- */
-	const {
-		porcentajes,
-		updatePercent,
-		loading
-	} = usePorcentajesDB(
-		user?.id ?? null,
-		gastos.map((g) => ({ id: g.id, nombre: g.nombre })),
-		mes,
-		año
-	);
-
 	/* ----------------------------- TOTALES MES ----------------------------- */
 	const totalIngresos = movs
 		.filter((m) => m.tipo === "ingreso")
@@ -61,9 +52,8 @@ export default function Dashboard() {
 
 	const totalMes = totalIngresos - Math.abs(totalGastos);
 
-	/* =====================================================================
-		 FAVORITOS — IMPORTAR UNO
-	===================================================================== */
+	/* ----------------------------- FAVORITOS ----------------------------- */
+
 	async function onImportOne(fav: Favorito): Promise<void> {
 		if (!user) return;
 
@@ -78,13 +68,11 @@ export default function Dashboard() {
 		});
 
 		refreshMovimientos();
-		setShowFavModal(false);
+		navigate("/");
 		setAlertMsg("Movimiento importado.");
+		setShowFavModal(false);
 	}
 
-	/* =====================================================================
-		 FAVORITOS — IMPORTAR TODOS
-	===================================================================== */
 	async function onImportAll(): Promise<void> {
 		if (!user) return;
 
@@ -101,19 +89,18 @@ export default function Dashboard() {
 		}
 
 		refreshMovimientos();
+		navigate("/");
+		setAlertMsg("Favoritos importados.");
 		setShowFavModal(false);
-		setAlertMsg("Todos los favoritos fueron importados.");
 	}
 
-	/* =====================================================================
-		 LIMPIAR MES
-	===================================================================== */
+	/* ----------------------------- LIMPIAR MES ----------------------------- */
 	async function onLimpiarMes(): Promise<void> {
 		if (!user) return;
 
 		await limpiarMesDB(mes, año, user.id);
-
 		refreshMovimientos();
+		navigate("/");
 		setAlertMsg("Mes limpiado correctamente.");
 	}
 
@@ -122,28 +109,18 @@ export default function Dashboard() {
 	return (
 		<div className="min-h-screen bg-[#D9ECEA] p-4 md:p-6">
 
-			{/* ALERTA */}
 			<Alert message={alertMsg} onClose={() => setAlertMsg("")} />
-
-			{loading && (
-				<div className="text-center font-semibold text-gray-600">
-					Cargando porcentajes...
-				</div>
-			)}
 
 			{/* ============================ GASTOS ============================ */}
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 				{gastos.map((c) => (
 					<DynamicCategoryBox
-						key={`${refreshKey}-gasto-${c.id}`}
+						key={`${c.id}-${refreshKey}`}
 						categoria={c.nombre}
 						movs={movs.filter((m) => m.categoria === c.nombre)}
 						tipo="gasto"
-						percent={porcentajes[c.id] ?? 0}
-						onPercentChange={(v: number) => updatePercent(c.id, v)}
 						totalIngresos={totalIngresos}
 					/>
-
 				))}
 			</div>
 
@@ -151,21 +128,19 @@ export default function Dashboard() {
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
 				{ingresos.map((c) => (
 					<DynamicCategoryBox
-						key={`${refreshKey}-ingreso-${c.id}`}
+						key={`${c.id}-${refreshKey}`}
 						categoria={c.nombre}
 						movs={movs.filter((m) => m.categoria === c.nombre)}
 						tipo="ingreso"
-						percent={0}
-						onPercentChange={() => { }}
 						totalIngresos={totalIngresos}
 					/>
-
 				))}
 			</div>
 
+
 			<TotalesMes totalMes={totalMes} />
 
-			{/* ========================== FAVORITOS MODAL ========================== */}
+			{/* FAVORITOS */}
 			{showFavModal && (
 				<FavoritosModal
 					favoritos={favoritos}

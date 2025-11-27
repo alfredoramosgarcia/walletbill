@@ -51,23 +51,49 @@ export default function Evolucion() {
 	}, [user, año]);
 
 	async function load() {
+		const añoAnterior = año - 1;
 
+		// 1) Cargar diciembre del año anterior
+		const { data: diciembreAnterior } = await supabase
+			.from("historicobalance")
+			.select("*")
+			.eq("user_id", user!.id)
+			.eq("año", añoAnterior)
+			.eq("mes", 12)
+			.single();
 
-		const { data } = await supabase
+		// 2) Cargar todos los meses del año actual
+		const { data: mesesActual } = await supabase
 			.from("historicobalance")
 			.select("*")
 			.eq("user_id", user!.id)
 			.eq("año", año)
 			.order("mes");
 
-		setData(
-			data?.map(r => ({
-				...r,
-				etiqueta: meses[r.mes - 1]
-			})) ?? []
-		);
+		// 3) Preparar estructura final
+		const result: any[] = [];
 
+		// Si diciembre del año anterior existe → añadirlo primero
+		if (diciembreAnterior) {
+			result.push({
+				...diciembreAnterior,
+				etiqueta: `Dic. ${año - 1}`
+			});
+		}
+
+		// Después añadir todos los meses del año actual
+		if (mesesActual) {
+			result.push(
+				...mesesActual.map((r) => ({
+					...r,
+					etiqueta: meses[r.mes - 1]
+				}))
+			);
+		}
+
+		setData(result);
 	}
+
 
 	async function updateValue(id: string, value: number) {
 		await supabase

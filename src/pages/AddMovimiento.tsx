@@ -1,160 +1,121 @@
+// src/pages/AddMovimiento.tsx
 import { useEffect, useState } from "react";
-import { supabase } from "../supabase/client";
 import { useNavigate } from "react-router-dom";
-import { useFecha } from "../context/FechaContext";
+import { supabase } from "../supabase/client";
 
 export default function AddMovimiento() {
 	const navigate = useNavigate();
 
-	// 🟩 Guardamos el contexto como objeto completo
-	const fechaCtx = useFecha();
-	const { setMes, setAño } = fechaCtx;
-
 	const [tipo, setTipo] = useState("gasto");
-	const [categoria, setCategoria] = useState("");
+	const [categoria, setCategoria] = useState(""); // UUID
 	const [categorias, setCategorias] = useState<any[]>([]);
 
 	const [concepto, setConcepto] = useState("");
 	const [cantidad, setCantidad] = useState("");
 	const [favorito, setFavorito] = useState(false);
 
-	// 🟩 FORMATEAR LABEL BONITO
-	function formatearLabel(nombre: string) {
-		const conEspacios = nombre.replace(/([a-z])([A-Z])/g, "$1 $2");
-		return conEspacios
-			.split(" ")
-			.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-			.join(" ");
-	}
+	const mes = new Date().getMonth() + 1;
+	const año = new Date().getFullYear();
 
-	// 🟩 CARGAR CATEGORÍAS
+	// Cargar categorías
 	async function cargarCategorias(tipoSel: string) {
-		const { data, error } = await supabase
+		const { data } = await supabase
 			.from("categorias")
 			.select("*")
-			.eq("tipo", tipoSel)
-			.order("nombre", { ascending: true });
+			.eq("tipo", tipoSel);
 
-		if (error) {
-			console.log(error);
-			return;
-		}
-
-		setCategorias(data);
-		setCategoria(data[0]?.nombre || "");
+		if (data) setCategorias(data);
 	}
 
 	useEffect(() => {
 		cargarCategorias(tipo);
 	}, [tipo]);
 
-	// 🟩 GUARDAR MOVIMIENTO — FECHA LEÍDA SIEMPRE EN ESTE MOMENTO
-	async function guardarMovimiento() {
-		const { data: userData } = await supabase.auth.getUser();
-		const user = userData?.user;
-		if (!user) return alert("No hay usuario");
+	// Guardar movimiento
+	async function guardar() {
+		if (!categoria || !concepto || !cantidad) return;
 
-		// 🟩 LEER SIEMPRE LA FECHA ACTUALIZADA JUSTO ANTES DE INSERTAR
-		const mesActual = fechaCtx.mes;
-		const añoActual = fechaCtx.año;
+		const user = (await supabase.auth.getUser()).data.user;
+		if (!user) return;
 
-		const { error } = await supabase.from("movimientos").insert({
+		await supabase.from("movimientos").insert({
 			user_id: user.id,
 			tipo,
-			categoria,
+			categoria,        // <- UUID REAL
 			concepto,
 			cantidad: Number(cantidad),
-			mes: mesActual.toString(),
-			año: añoActual,
+			mes: mes.toString(),
+			año,
+			favorito
 		});
-
-		if (error) {
-			alert(error.message);
-			return;
-		}
-
-		// Guardar como favorito
-		if (favorito) {
-			await supabase.from("favoritos").upsert({
-				user_id: user.id,
-				tipo,
-				categoria,
-				concepto,
-				cantidad: Number(cantidad),
-			});
-		}
-
-		// 🟩 ACTUALIZAR CONTEXTO PARA QUE EL DASHBOARD VAYA AL MES CORRECTO
-		setMes(mesActual);
-		setAño(añoActual);
 
 		navigate("/");
 	}
 
 	return (
-		<div className="h-screen p-6 bg-[#E0F2F1]">
-			<div className="flex justify-between items-center mb-4">
-				<h1 className="text-xl font-bold text-[#006C7A]">Añadir Movimiento</h1>
+		<div className="p-6">
 
-				<button
-					onClick={() => navigate(-1)}
-					className="px-4 py-2 bg-gray-300 rounded font-semibold"
-				>
-					← Volver
-				</button>
-			</div>
+			<h1 className="text-xl font-bold mb-4">Añadir movimiento</h1>
 
+			{/* Tipo */}
 			<select
-				className="w-full p-3 border rounded mb-3"
 				value={tipo}
 				onChange={(e) => setTipo(e.target.value)}
+				className="border p-2 w-full rounded mb-4"
 			>
 				<option value="gasto">Gasto</option>
 				<option value="ingreso">Ingreso</option>
 			</select>
 
+			{/* Categoría */}
 			<select
-				className="w-full p-3 border rounded mb-3"
 				value={categoria}
 				onChange={(e) => setCategoria(e.target.value)}
+				className="border p-2 w-full rounded mb-4"
 			>
+				<option value="">Seleccionar categoría</option>
 				{categorias.map((c) => (
-					<option key={c.id} value={c.nombre}>
-						{formatearLabel(c.nombre)}
+					<option key={c.id} value={c.id}>
+						{c.nombre}
 					</option>
 				))}
 			</select>
 
+			{/* Concepto */}
 			<input
-				className="w-full p-3 border rounded mb-3"
+				type="text"
 				placeholder="Concepto"
 				value={concepto}
 				onChange={(e) => setConcepto(e.target.value)}
+				className="border p-2 w-full rounded mb-4"
 			/>
 
+			{/* Cantidad */}
 			<input
-				className="w-full p-3 border rounded mb-3"
 				type="number"
 				placeholder="Cantidad"
 				value={cantidad}
 				onChange={(e) => setCantidad(e.target.value)}
+				className="border p-2 w-full rounded mb-4"
 			/>
 
-			<label className="flex items-center gap-2 mb-4">
+			{/* Favorito */}
+			<label className="flex items-center gap-2 mb-6">
 				<input
 					type="checkbox"
 					checked={favorito}
 					onChange={(e) => setFavorito(e.target.checked)}
 				/>
-				<span className="font-semibold text-[#006C7A]">⭐ Guardar como favorito</span>
+				Marcar como favorito
 			</label>
 
 			<button
-				onClick={guardarMovimiento}
-				className="w-full bg-[#0097A7] p-3 text-white rounded font-semibold"
+				onClick={guardar}
+				className="bg-[#0097A7] text-white p-3 rounded w-full font-semibold"
 			>
 				Guardar
 			</button>
+
 		</div>
 	);
 }

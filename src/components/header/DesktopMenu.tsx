@@ -53,17 +53,6 @@ export default function DesktopMenu({
 						➕ Añadir movimiento
 					</button>
 
-					{/* GUARDAR PORCENTAJES */}
-					<button
-						onClick={() => {
-							onSavePercents();
-							setOpen(false);
-						}}
-						className="w-full text-left px-4 py-2 rounded-lg hover:bg-gray-100 font-medium"
-					>
-						💾 Guardar porcentajes
-					</button>
-
 					{/* FAVORITOS */}
 					<button
 						onClick={() => {
