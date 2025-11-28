@@ -21,7 +21,7 @@ export default function Categorias() {
 
 	const [alert, setAlert] = useState("");
 	const [error, setError] = useState("");
-	const [loading, setLoading] = useState(false);
+	const [, setLoading] = useState(false);
 
 	// MODAL PARA CONFIRMAR ELIMINACIÓN
 	const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
