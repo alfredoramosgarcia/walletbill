@@ -1,3 +1,4 @@
+// src/components/ModalCrearCuenta.tsx
 import { useState } from "react";
 import { supabase } from "../supabase/client";
 
@@ -27,95 +28,58 @@ export default function ModalCrearCuenta({
 	// ==========================================================
 	// CREAR CUENTA + PERFIL
 	// ==========================================================
+
 	async function crearCuenta() {
 		setAlertMsg("");
 
-		// VALIDACIONES ----------------------------------------
+		// VALIDACIONES...
 		if (nombre.trim().length === 0) {
 			setAlertType("error");
 			setAlertMsg("Debes introducir tu nombre.");
 			return;
 		}
-
-		if (email.trim().length === 0) {
-			setAlertType("error");
-			setAlertMsg("El correo es obligatorio.");
-			return;
-		}
-
 		if (!isValidEmail(email)) {
 			setAlertType("error");
 			setAlertMsg("El correo introducido no es válido.");
 			return;
 		}
-
-		if (password.trim().length === 0) {
-			setAlertType("error");
-			setAlertMsg("La contraseña es obligatoria.");
-			return;
-		}
-
 		if (password !== password2) {
 			setAlertType("error");
 			setAlertMsg("Las contraseñas no coinciden.");
 			return;
 		}
 
-		// CREAR USER -------------------------------------------
 		setLoading(true);
 
-		const { data, error } = await supabase.auth.signUp({
+		// 1) Crear el usuario
+		const { data, error: signUpError } = await supabase.auth.signUp({
 			email,
-			password,
+			password
 		});
 
 		setLoading(false);
 
-		if (error) {
+		if (signUpError) {
 			setAlertType("error");
-			setAlertMsg(error.message);
+			setAlertMsg(signUpError.message);
 			return;
 		}
 
-		// ==========================================================
-		// OBTENER ID DEL USUARIO (soporta email sin verificar)
-		// ==========================================================
-		let userId: string | null = null;
+		// 2) Usar el user devuelto por signUp
+		const userId = data.user?.id;
 
-		// Caso normal → user.id viene directo
-		if (data.user?.id) {
-			userId = data.user.id;
-		} else {
-			// Caso email pendiente de verificación → usar identities
-			const identities =
-				(data as any)?.user?.identities ||
-				data?.session?.user?.identities ||
-				[];
-
-			if (identities.length > 0 && identities[0].identity_id) {
-				userId = identities[0].identity_id;
-			}
-		}
-
-		// Si NO tenemos ID → error
 		if (!userId) {
 			setAlertType("error");
-			setAlertMsg("No se pudo crear el perfil. (ID no encontrado)");
+			setAlertMsg("No se pudo crear el perfil (sin user ID).");
 			return;
 		}
 
-		// ==========================================================
-		// INSERTAR PERFIL EN `profiles`
-		// ==========================================================
-
-		await supabase.from("profiles").upsert(
-			{
-				id: userId,
-				nombre: nombre,
-				avatar_url: "",
-			},
-			{ onConflict: "id" }
-		);
+		// 3) Crear perfil
+		await supabase.from("profiles").upsert({
+			id: userId,
+			nombre,
+			avatar_url: ""
+		});
 
 		setAlertType("success");
 		setAlertMsg("Cuenta creada. Revisa tu correo para confirmar.");
