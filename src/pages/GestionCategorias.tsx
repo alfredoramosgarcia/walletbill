@@ -20,10 +20,11 @@ export default function Categorias() {
 	const [editId, setEditId] = useState<string | null>(null);
 
 	const [alert, setAlert] = useState("");
+	const [alertType, setAlertType] = useState<"success" | "error">("success");
+
 	const [error, setError] = useState("");
 	const [, setLoading] = useState(false);
 
-	// Modal borrar
 	const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
 	// ===========================
@@ -50,7 +51,11 @@ export default function Categorias() {
 	// Guardar / editar categoría
 	// ===========================
 	async function guardarCategoria() {
-		if (!nombre.trim()) return;
+		if (!nombre.trim()) {
+			setAlert("Debes introducir un nombre.");
+			setAlertType("error");
+			return;
+		}
 
 		setLoading(true);
 		setError("");
@@ -76,7 +81,8 @@ export default function Categorias() {
 		setLoading(false);
 
 		if (resp.error) {
-			setError("Error guardando la categoría.");
+			setAlert("Error guardando la categoría.");
+			setAlertType("error");
 			return;
 		}
 
@@ -85,6 +91,8 @@ export default function Categorias() {
 		setEditId(null);
 
 		setAlert(editId ? "Categoría actualizada." : "Categoría creada.");
+		setAlertType("success");
+
 		cargarCategorias();
 	}
 
@@ -92,15 +100,23 @@ export default function Categorias() {
 	// Borrar categoría
 	// ===========================
 	async function borrarCategoria(id: string) {
-		await supabase.from("categorias").delete().eq("id", id);
+		const resp = await supabase.from("categorias").delete().eq("id", id);
+
+		if (resp.error) {
+			setAlert("No se pudo eliminar.");
+			setAlertType("error");
+			return;
+		}
 
 		setAlert("Categoría eliminada.");
+		setAlertType("success");
+
 		setConfirmDelete(null);
 		cargarCategorias();
 	}
 
 	// ===========================
-	// Formatear nombre visual
+	// Formateo visual
 	// ===========================
 	function formatLabel(str: string) {
 		return str
@@ -110,14 +126,14 @@ export default function Categorias() {
 			.join(" ");
 	}
 
-	// Filtros
 	const gastos = categorias.filter((c) => c.tipo === "gasto");
 	const ingresos = categorias.filter((c) => c.tipo === "ingreso");
 
 	return (
 		<div className="min-h-screen bg-[#D9ECEA] p-6 flex justify-center">
 
-			<Alert message={alert} onClose={() => setAlert("")} />
+			{/* ALERTA SUPERIOR */}
+			<Alert message={alert} type={alertType} onClose={() => setAlert("")} />
 
 			<div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-3xl">
 
@@ -132,13 +148,6 @@ export default function Categorias() {
 						←
 					</button>
 				</div>
-
-				{/* Error */}
-				{error && (
-					<div className="mb-3 p-3 bg-red-100 text-red-700 border border-red-300 rounded text-center text-sm">
-						{error}
-					</div>
-				)}
 
 				{/* FORMULARIO */}
 				<div className="bg-gray-50 p-4 rounded-xl mb-8">
@@ -265,7 +274,6 @@ export default function Categorias() {
 							))}
 						</ul>
 					</div>
-
 				</div>
 			</div>
 
@@ -299,7 +307,6 @@ export default function Categorias() {
 					</div>
 				</div>
 			)}
-
 		</div>
 	);
 }

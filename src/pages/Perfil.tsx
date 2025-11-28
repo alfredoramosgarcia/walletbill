@@ -11,6 +11,8 @@ export default function PerfilUsuario() {
 	const [newPass, setNewPass] = useState("");
 
 	const [alert, setAlert] = useState("");
+	const [alertType, setAlertType] = useState<"success" | "error">("success");
+
 	const [error, setError] = useState("");
 	const [, setLoading] = useState(false);
 
@@ -34,7 +36,16 @@ export default function PerfilUsuario() {
 		if (perfil) setNombre(perfil.nombre);
 	}
 
+	// ==========================
+	// GUARDAR NOMBRE
+	// ==========================
 	async function guardarNombre() {
+		if (!nombre.trim()) {
+			setAlert("Debes introducir un nombre.");
+			setAlertType("error");
+			return;
+		}
+
 		setLoading(true);
 		setError("");
 
@@ -49,11 +60,25 @@ export default function PerfilUsuario() {
 
 		setLoading(false);
 
-		if (error) setError("No se pudo actualizar el nombre.");
-		else setAlert("Nombre actualizado.");
+		if (error) {
+			setAlert("No se pudo actualizar el nombre.");
+			setAlertType("error");
+		} else {
+			setAlert("Nombre actualizado.");
+			setAlertType("success");
+		}
 	}
 
+	// ==========================
+	// CAMBIAR PASSWORD
+	// ==========================
 	async function cambiarPassword() {
+		if (!newPass.trim()) {
+			setAlert("La nueva contraseña no puede estar vacía.");
+			setAlertType("error");
+			return;
+		}
+
 		setLoading(true);
 		setError("");
 
@@ -63,10 +88,18 @@ export default function PerfilUsuario() {
 
 		setLoading(false);
 
-		if (error) setError(error.message);
-		else setAlert("Contraseña actualizada.");
+		if (error) {
+			setAlert(error.message);
+			setAlertType("error");
+		} else {
+			setAlert("Contraseña actualizada.");
+			setAlertType("success");
+		}
 	}
 
+	// ==========================
+	// ELIMINAR CUENTA
+	// ==========================
 	async function eliminarCuenta() {
 		setLoading(true);
 		setError("");
@@ -76,13 +109,15 @@ export default function PerfilUsuario() {
 		setLoading(false);
 
 		if (error) {
-			setError("Error eliminando cuenta.");
+			setAlert("Error eliminando cuenta.");
+			setAlertType("error");
 			return;
 		}
 
 		setAlert("Cuenta eliminada correctamente.");
-		await supabase.auth.signOut();
+		setAlertType("success");
 
+		await supabase.auth.signOut();
 		localStorage.removeItem("supabase.auth.token");
 		localStorage.removeItem("supabase.auth.refresh_token");
 
@@ -93,7 +128,8 @@ export default function PerfilUsuario() {
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-[#D9ECEA] px-4">
 
-			<Alert message={alert} onClose={() => setAlert("")} />
+			{/* ALERTA SUPERIOR */}
+			<Alert message={alert} type={alertType} onClose={() => setAlert("")} />
 
 			<div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-lg">
 
@@ -109,7 +145,7 @@ export default function PerfilUsuario() {
 					</button>
 				</div>
 
-				{/* Error */}
+				{/* Error de Supabase (deprecated) */}
 				{error && (
 					<div className="mb-3 p-3 bg-red-100 border border-red-300 text-red-700 rounded text-center text-sm">
 						{error}
@@ -165,7 +201,7 @@ export default function PerfilUsuario() {
 				</div>
 			</div>
 
-			{/* Modal delete */}
+			{/* MODAL ELIMINAR CUENTA */}
 			{confirmDelete && (
 				<div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
 					<div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-sm text-center">

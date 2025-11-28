@@ -3,11 +3,12 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabase/client";
 import { useFecha } from "../context/FechaContext";
+import Alert from "../components/alerts/Alert";
 
 interface Categoria {
 	id: string;
 	nombre: string;
-	tipo: "gasto" | "ingreso";
+	tipo: "gasto" | "inreso";
 }
 
 export default function AddMovimiento() {
@@ -20,6 +21,10 @@ export default function AddMovimiento() {
 	const [concepto, setConcepto] = useState("");
 	const [cantidad, setCantidad] = useState("");
 	const [favorito, setFavorito] = useState(false);
+
+	// ALERTA
+	const [alertMsg, setAlertMsg] = useState("");
+	const [alertType, setAlertType] = useState<"success" | "error">("success");
 
 	function formatearLabel(nombre: string) {
 		const conEspacios = nombre.replace(/([a-z])([A-Z])/g, "$1 $2");
@@ -44,16 +49,21 @@ export default function AddMovimiento() {
 	}
 
 	async function guardar() {
-		if (!categoria || !concepto.trim() || !cantidad) {
-			console.log("⛔ Falta algún campo");
+		const errores: string[] = [];
+
+		if (!tipo) errores.push("el tipo");
+		if (!categoria) errores.push("la categoría");
+		if (!concepto.trim()) errores.push("el concepto");
+		if (!cantidad) errores.push("la cantidad");
+
+		if (errores.length > 0) {
+			setAlertMsg("Debes completar: " + errores.join(", "));
+			setAlertType("error");
 			return;
 		}
 
 		const user = (await supabase.auth.getUser()).data.user;
-		if (!user) {
-			console.log("⛔ No hay usuario");
-			return;
-		}
+		if (!user) return;
 
 		const insertData = {
 			user_id: user.id,
@@ -65,8 +75,6 @@ export default function AddMovimiento() {
 			año,
 		};
 
-		console.log("📤 Datos a insertar:", insertData);
-
 		const { data: inserted, error } = await supabase
 			.from("movimientos")
 			.insert(insertData)
@@ -74,12 +82,10 @@ export default function AddMovimiento() {
 			.single();
 
 		if (error) {
-			console.error("❌ ERROR Supabase:", error);
-			alert("Error al guardar: " + error.message);
+			setAlertMsg("No se pudo guardar el movimiento.");
+			setAlertType("error");
 			return;
 		}
-
-		console.log("✔ Insertado correctamente", inserted);
 
 		if (favorito && inserted) {
 			await supabase.from("favoritos").insert({
@@ -91,15 +97,20 @@ export default function AddMovimiento() {
 			});
 		}
 
-		navigate("/");
-	}
+		setAlertType("success");
+		setAlertMsg("Movimiento guardado correctamente.");
 
+		setTimeout(() => navigate("/"), 800);
+	}
 
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-[#D9ECEA] px-4">
+
+			{/* ALERTA SUPERIOR */}
+			<Alert message={alertMsg} type={alertType} onClose={() => setAlertMsg("")} />
+
 			<div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-lg">
 
-				{/* Título + volver */}
 				{/* Título + volver */}
 				<div className="relative flex items-center justify-center mb-6 pr-10">
 					<h1 className="text-2xl font-bold text-[#006C7A]">Añadir Movimiento</h1>
@@ -112,17 +123,11 @@ export default function AddMovimiento() {
 					</button>
 				</div>
 
-
-
 				<div className="space-y-6">
 
 					{/* Tipo */}
 					<select
-						className="
-							w-full p-3 rounded-xl border bg-gray-50 
-							text-black
-							md:text-gray-700
-						"
+						className="w-full p-3 rounded-xl border bg-gray-50 text-black"
 						value={tipo}
 						onChange={(e) => setTipo(e.target.value as "gasto" | "ingreso")}
 					>
@@ -132,11 +137,7 @@ export default function AddMovimiento() {
 
 					{/* Categoría */}
 					<select
-						className="
-							w-full p-3 rounded-xl border bg-gray-50 
-							text-black
-							md:text-gray-700
-						"
+						className="w-full p-3 rounded-xl border bg-gray-50 text-black"
 						value={categoria}
 						onChange={(e) => setCategoria(e.target.value)}
 					>
@@ -150,10 +151,7 @@ export default function AddMovimiento() {
 
 					{/* Concepto */}
 					<input
-						className="
-							w-full p-3 rounded-xl border bg-gray-50 
-							text-black           /* 👉 texto negro */
-						"
+						className="w-full p-3 rounded-xl border bg-gray-50 text-black"
 						placeholder="Concepto"
 						value={concepto}
 						onChange={(e) => setConcepto(e.target.value)}
@@ -161,10 +159,7 @@ export default function AddMovimiento() {
 
 					{/* Cantidad */}
 					<input
-						className="
-							w-full p-3 rounded-xl border bg-gray-50 
-							text-black           /* 👉 texto negro */
-						"
+						className="w-full p-3 rounded-xl border bg-gray-50 text-black"
 						type="number"
 						placeholder="Cantidad"
 						value={cantidad}
@@ -183,6 +178,7 @@ export default function AddMovimiento() {
 						</span>
 					</label>
 
+					{/* Botón Guardar */}
 					<button
 						onClick={guardar}
 						className="w-full bg-[#0097A7] text-white p-3 rounded-lg font-semibold hover:bg-[#008190] transition"

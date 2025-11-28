@@ -26,7 +26,10 @@ export default function Dashboard() {
 
 	const { refreshKey, refreshMovimientos } = useMovimientosRefresh();
 
+	// ALERTAS
 	const [alertMsg, setAlertMsg] = useState("");
+	const [alertType, setAlertType] = useState<"success" | "error">("success");
+
 	const [showFavModal, setShowFavModal] = useState(false);
 
 	/* ----------------------------- MOVIMIENTOS ----------------------------- */
@@ -35,7 +38,6 @@ export default function Dashboard() {
 	/* ----------------------------- CATEGORÍAS ----------------------------- */
 	const { categorias } = useCategorias();
 
-	// 🔥 Aquí ya vienen filtradas (globales + usuario)
 	const gastos = categorias.filter((c) => c.tipo === "gasto");
 	const ingresos = categorias.filter((c) => c.tipo === "ingreso");
 
@@ -53,12 +55,12 @@ export default function Dashboard() {
 
 	const totalMes = totalIngresos - Math.abs(totalGastos);
 
-	/* ----------------------------- IMPORTAR FAVORITOS ----------------------------- */
+	/* ----------------------------- IMPORTAR FAVORITO (UNO) ----------------------------- */
 
 	async function onImportOne(fav: Favorito): Promise<void> {
 		if (!user) return;
 
-		await supabase.from("movimientos").insert({
+		const { error } = await supabase.from("movimientos").insert({
 			user_id: user.id,
 			tipo: fav.tipo,
 			categoria: fav.categoria,
@@ -68,31 +70,47 @@ export default function Dashboard() {
 			año
 		});
 
+		if (error) {
+			setAlertType("error");
+			setAlertMsg("Error importando el movimiento.");
+			return;
+		}
+
 		refreshMovimientos();
-		navigate("/");
-		setAlertMsg("Movimiento importado.");
 		setShowFavModal(false);
+
+		setAlertType("success");
+		setAlertMsg("Movimiento importado.");
 	}
+
+	/* ----------------------------- IMPORTAR TODOS ----------------------------- */
 
 	async function onImportAll(): Promise<void> {
 		if (!user) return;
 
-		for (const fav of favoritos) {
-			await supabase.from("movimientos").insert({
-				user_id: user.id,
-				tipo: fav.tipo,
-				categoria: fav.categoria,
-				concepto: fav.concepto,
-				cantidad: fav.cantidad,
-				mes: mes.toString(),
-				año
-			});
-		}
+		try {
+			for (const fav of favoritos) {
+				await supabase.from("movimientos").insert({
+					user_id: user.id,
+					tipo: fav.tipo,
+					categoria: fav.categoria,
+					concepto: fav.concepto,
+					cantidad: fav.cantidad,
+					mes: mes.toString(),
+					año
+				});
+			}
 
-		refreshMovimientos();
-		navigate("/");
-		setAlertMsg("Favoritos importados.");
-		setShowFavModal(false);
+			refreshMovimientos();
+			setShowFavModal(false);
+
+			setAlertType("success");
+			setAlertMsg("Favoritos importados.");
+
+		} catch (err) {
+			setAlertType("error");
+			setAlertMsg("Error importando favoritos.");
+		}
 	}
 
 	/* ----------------------------- RENDER UI ----------------------------- */
@@ -100,7 +118,12 @@ export default function Dashboard() {
 	return (
 		<div className="min-h-screen bg-[#D9ECEA] p-4 md:p-6">
 
-			<Alert message={alertMsg} onClose={() => setAlertMsg("")} />
+			{/* ALERTA SUPERIOR */}
+			<Alert
+				message={alertMsg}
+				type={alertType}
+				onClose={() => setAlertMsg("")}
+			/>
 
 			{/* ============================ GASTOS ============================ */}
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -132,7 +155,7 @@ export default function Dashboard() {
 
 			<TotalesMes totalMes={totalMes} />
 
-			{/* FAVORITOS */}
+			{/* FAVORITOS MODAL */}
 			{showFavModal && (
 				<FavoritosModal
 					favoritos={favoritos}
