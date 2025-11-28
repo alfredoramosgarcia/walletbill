@@ -40,7 +40,7 @@ export default function FavoritosModal({
 							<div>
 								<p className="font-bold text-[#006C7A] text-lg">{f.concepto}</p>
 								<p className="text-sm text-gray-600">
-									{f.categoria} · {f.tipo}
+									{f.tipo.charAt(0).toUpperCase() + f.tipo.slice(1)}
 								</p>
 							</div>
 
