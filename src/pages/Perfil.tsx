@@ -87,10 +87,14 @@ export default function PerfilUsuario() {
 
 		// Mostrar alerta de éxito
 		setAlert("Cuenta eliminada correctamente.");
+		await supabase.auth.signOut();
 
-		setTimeout(async () => {
-			await supabase.auth.signOut();
-		}, 1800); // NO navigate
+		// Eliminar tokens locales para asegurarlo
+		localStorage.removeItem("supabase.auth.token");
+		localStorage.removeItem("supabase.auth.refresh_token");
+
+		navigate("/login", { replace: true });
+		window.location.reload(); // << fuerza actualización de AuthProvider
 
 	}
 

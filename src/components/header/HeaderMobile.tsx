@@ -100,12 +100,19 @@ export default function HeaderMobile({
 					<button
 						onClick={async () => {
 							await supabase.auth.signOut();
-							navigate("/");
+
+							// Eliminar tokens locales para asegurarlo
+							localStorage.removeItem("supabase.auth.token");
+							localStorage.removeItem("supabase.auth.refresh_token");
+
+							navigate("/login", { replace: true });
+							window.location.reload(); // << fuerza actualización de AuthProvider
 						}}
-						className="bg-gray-500 text-white px-5 py-3 rounded-lg shadow text-center font-semibold hover:bg-gray-600"
+						className="bg-white/80 text-red-600 font-semibold px-6 py-3 rounded shadow hover:bg-red-50"
 					>
 						Cerrar sesión
 					</button>
+
 
 				</div>
 			)}
