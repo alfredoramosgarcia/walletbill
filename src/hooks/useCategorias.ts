@@ -1,30 +1,37 @@
+// src/hooks/useCategorias.ts
 import { useEffect, useState } from "react";
 import { supabase } from "../supabase/client";
-import type { Categoria } from "../types/Categoria";
+import { useAuth } from "./useAuth";
 
 export function useCategorias() {
-	const [categorias, setCategorias] = useState<Categoria[]>([]);
-	const [loading, setLoading] = useState(true);
+	const { user } = useAuth();
+	const [categorias, setCategorias] = useState<any[]>([]);
+	const [loadingCategorias, setLoadingCategorias] = useState(true);
+
+	async function cargarCategorias() {
+		if (!user) return;
+
+		setLoadingCategorias(true);
+
+		// Selecciona SOLO las columnas correctas
+		const { data, error } = await supabase
+			.from("categorias")
+			.select("id, nombre, tipo")
+			.order("nombre", { ascending: true });
+
+		if (error) {
+			console.error("Error cargando categorías:", error);
+			setCategorias([]);
+		} else {
+			setCategorias(data || []);
+		}
+
+		setLoadingCategorias(false);
+	}
 
 	useEffect(() => {
 		cargarCategorias();
-	}, []);
+	}, [user]);
 
-	async function cargarCategorias() {
-		setLoading(true);
-
-		const user = (await supabase.auth.getUser()).data.user;
-
-		const { data } = await supabase
-			.from("categorias")
-			.select("*")
-			.or(`user_id.eq.${user?.id},user_id.is.null`)
-			.order("tipo", { ascending: true })
-			.order("nombre", { ascending: true });
-
-		setCategorias(data ?? []);
-		setLoading(false);
-	}
-
-	return { categorias, loading, cargarCategorias };
+	return { categorias, loadingCategorias };
 }

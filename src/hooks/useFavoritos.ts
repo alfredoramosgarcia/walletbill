@@ -13,13 +13,13 @@ export function useFavoritos() {
 
 		setLoadingFavs(true);
 
-		const { data } = await supabase
+		const { data, error } = await supabase
 			.from("favoritos")
 			.select("*")
 			.eq("user_id", user.id)
-			.order("concepto", { ascending: true });
+			.order("created_at", { ascending: false });
 
-		setFavoritos(data ?? []);
+		if (!error) setFavoritos(data ?? []);
 		setLoadingFavs(false);
 	}
 

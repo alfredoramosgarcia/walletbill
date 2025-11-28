@@ -17,12 +17,21 @@ export default function AddMovimiento() {
 	const mes = new Date().getMonth() + 1;
 	const año = new Date().getFullYear();
 
-	// Cargar categorías
+	function formatearLabel(nombre: string) {
+		const conEspacios = nombre.replace(/([a-z])([A-Z])/g, "$1 $2");
+		return conEspacios
+			.split(" ")
+			.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+			.join(" ");
+	}
+
+	// Cargar categorías según tipo
 	async function cargarCategorias(tipoSel: string) {
 		const { data } = await supabase
 			.from("categorias")
 			.select("*")
-			.eq("tipo", tipoSel);
+			.eq("tipo", tipoSel)
+			.order("nombre", { ascending: true });
 
 		if (data) setCategorias(data);
 	}
@@ -33,7 +42,7 @@ export default function AddMovimiento() {
 
 	// Guardar movimiento
 	async function guardar() {
-		if (!categoria || !concepto || !cantidad) return;
+		if (!categoria || !concepto.trim() || !cantidad) return;
 
 		const user = (await supabase.auth.getUser()).data.user;
 		if (!user) return;
@@ -41,16 +50,16 @@ export default function AddMovimiento() {
 		await supabase.from("movimientos").insert({
 			user_id: user.id,
 			tipo,
-			categoria,        // <- UUID REAL
+			categoria, // UUID
 			concepto,
 			cantidad: Number(cantidad),
 			mes: mes.toString(),
-			año,
-			favorito
+			año
 		});
 
 		navigate("/");
 	}
+
 
 	return (
 		<div className="p-6">
@@ -76,7 +85,7 @@ export default function AddMovimiento() {
 				<option value="">Seleccionar categoría</option>
 				{categorias.map((c) => (
 					<option key={c.id} value={c.id}>
-						{c.nombre}
+						{formatearLabel(c.nombre)}
 					</option>
 				))}
 			</select>

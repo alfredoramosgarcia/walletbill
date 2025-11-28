@@ -1,8 +1,10 @@
+// src/components/dashboard/DynamicCategoryBox.tsx
 import { Link } from "react-router-dom";
 import { formatCategoryTitle } from "../../utils/formatCategoryTitle";
 
 interface Props {
-	categoria: string;
+	categoria: string;      // nombre visible
+	categoriaId: string;    // UUID real (no se usa dentro, pero TS lo exige)
 	movs: any[];
 	tipo: "gasto" | "ingreso";
 	totalIngresos: number;

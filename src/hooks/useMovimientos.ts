@@ -1,3 +1,4 @@
+// src/hooks/useMovimientos.ts
 import { useEffect, useState } from "react";
 import { supabase } from "../supabase/client";
 import { useAuth } from "./useAuth";
@@ -18,7 +19,7 @@ export function useMovimientos(mes: number, año: number, refreshKey: number) {
 		const { data } = await supabase
 			.from("movimientos")
 			.select("*")
-			.eq("user_id", user.id)   // 🔥🔥 AQUI EL FIX 🔥🔥
+			.eq("user_id", user.id)
 			.eq("mes", mesStr)
 			.eq("año", año)
 			.order("id", { ascending: false });

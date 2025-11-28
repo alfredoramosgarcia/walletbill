@@ -1,3 +1,4 @@
+// src/pages/Dashboard/Dashboard.tsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -8,7 +9,6 @@ import { useCategorias } from "../../hooks/useCategorias";
 
 import { useFecha } from "../../context/FechaContext";
 import { useMovimientosRefresh } from "../../context/MovimientoContext";
-
 
 import DynamicCategoryBox from "../../components/dashboard/DynamicCategoryBox";
 import TotalesMes from "../../components/dashboard/TotalesMes";
@@ -21,7 +21,7 @@ import type { Favorito } from "../../types/Favorito";
 export default function Dashboard() {
 	const navigate = useNavigate();
 
-	const { mes, año, } = useFecha();
+	const { mes, año } = useFecha();
 	const { user } = useAuth();
 
 	const { refreshKey, refreshMovimientos } = useMovimientosRefresh();
@@ -51,7 +51,7 @@ export default function Dashboard() {
 
 	const totalMes = totalIngresos - Math.abs(totalGastos);
 
-	/* ----------------------------- FAVORITOS ----------------------------- */
+	/* ----------------------------- IMPORTAR FAVORITOS ----------------------------- */
 
 	async function onImportOne(fav: Favorito): Promise<void> {
 		if (!user) return;
@@ -59,7 +59,7 @@ export default function Dashboard() {
 		await supabase.from("movimientos").insert({
 			user_id: user.id,
 			tipo: fav.tipo,
-			categoria: fav.categoria,
+			categoria: fav.categoria, // UUID OK
 			concepto: fav.concepto,
 			cantidad: fav.cantidad,
 			mes: mes.toString(),
@@ -79,7 +79,7 @@ export default function Dashboard() {
 			await supabase.from("movimientos").insert({
 				user_id: user.id,
 				tipo: fav.tipo,
-				categoria: fav.categoria,
+				categoria: fav.categoria, // UUID OK
 				concepto: fav.concepto,
 				cantidad: fav.cantidad,
 				mes: mes.toString(),
@@ -92,7 +92,6 @@ export default function Dashboard() {
 		setAlertMsg("Favoritos importados.");
 		setShowFavModal(false);
 	}
-
 
 	/* ----------------------------- RENDER UI ----------------------------- */
 
@@ -107,7 +106,8 @@ export default function Dashboard() {
 					<DynamicCategoryBox
 						key={`${c.id}-${refreshKey}`}
 						categoria={c.nombre}
-						movs={movs.filter((m) => m.categoria === c.nombre)}
+						categoriaId={c.id}
+						movs={movs.filter((m) => m.categoria === c.id)}
 						tipo="gasto"
 						totalIngresos={totalIngresos}
 					/>
@@ -120,13 +120,13 @@ export default function Dashboard() {
 					<DynamicCategoryBox
 						key={`${c.id}-${refreshKey}`}
 						categoria={c.nombre}
-						movs={movs.filter((m) => m.categoria === c.nombre)}
+						categoriaId={c.id}
+						movs={movs.filter((m) => m.categoria === c.id)}
 						tipo="ingreso"
 						totalIngresos={totalIngresos}
 					/>
 				))}
 			</div>
-
 
 			<TotalesMes totalMes={totalMes} />
 

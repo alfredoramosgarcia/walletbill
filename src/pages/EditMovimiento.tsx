@@ -1,11 +1,12 @@
+// src/pages/EditMovimiento.tsx
 import { useEffect, useState } from "react";
 import { supabase } from "../supabase/client";
 import { useParams, useNavigate } from "react-router-dom";
 import { useFecha } from "../context/FechaContext";
 
-// Tipos TS
+// Tipos
 interface Categoria {
-	id: number;
+	id: string;
 	nombre: string;
 	tipo: "gasto" | "ingreso";
 }
@@ -14,7 +15,7 @@ interface Movimiento {
 	id: number;
 	user_id: string;
 	tipo: "gasto" | "ingreso";
-	categoria: string;
+	categoria: string; // UUID
 	concepto: string;
 	cantidad: number;
 	mes: string;
@@ -24,25 +25,16 @@ interface Movimiento {
 export default function EditMovimiento() {
 	const { id } = useParams<{ id: string }>();
 	const navigate = useNavigate();
-
-	// 🟩 Ahora SÍ usamos el contexto
 	const { setMes, setAño } = useFecha();
 
 	const [mov, setMov] = useState<Movimiento | null>(null);
+	const [categorias, setCategorias] = useState<Categoria[]>([]);
 	const [favorito, setFavorito] = useState(false);
 	const [favId, setFavId] = useState<string | null>(null);
-	const [categorias, setCategorias] = useState<Categoria[]>([]);
 
-	// Meses disponibles (1–12)
-	const meses = [
-		"1", "2", "3", "4", "5", "6",
-		"7", "8", "9", "10", "11", "12"
-	];
-
-	// Años para elegir (por ejemplo 2020–2030)
+	const meses = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
 	const años = Array.from({ length: 11 }, (_, i) => 2020 + i);
 
-	// Formatear label
 	function formatearLabel(nombre: string) {
 		const conEspacios = nombre.replace(/([a-z])([A-Z])/g, "$1 $2");
 		return conEspacios
@@ -55,9 +47,7 @@ export default function EditMovimiento() {
 		cargar();
 	}, []);
 
-	// =====================================================
-	// CARGAR MOVIMIENTO + FAVORITO
-	// =====================================================
+	// Cargar movimiento
 	async function cargar() {
 		const { data } = await supabase
 			.from("movimientos")
@@ -69,7 +59,7 @@ export default function EditMovimiento() {
 
 		setMov(data as Movimiento);
 
-		// Cargar categorías según el tipo actual
+		// cargar categorías según tipo
 		await cargarCategorias(data.tipo, data.categoria);
 
 		// Revisar favorito
@@ -86,39 +76,38 @@ export default function EditMovimiento() {
 		setFavId(fav?.id ?? null);
 	}
 
-	// =====================================================
-	// CARGAR CATEGORÍAS SEGÚN TIPO
-	// =====================================================
-	async function cargarCategorias(tipoSel: "gasto" | "ingreso", categoriaActual?: string) {
-		const { data, error } = await supabase
+	// Cargar categorías
+	async function cargarCategorias(
+		tipoSel: "gasto" | "ingreso",
+		categoriaActual?: string
+	) {
+		const { data } = await supabase
 			.from("categorias")
 			.select("*")
 			.eq("tipo", tipoSel)
 			.order("nombre", { ascending: true });
 
-		if (error || !data) return;
+		if (!data) return;
 
 		const lista = data as Categoria[];
 		setCategorias(lista);
 
-		// Mantener categoría actual si existe
-		if (categoriaActual && lista.some((c) => c.nombre === categoriaActual)) {
+		// Mantener categoría actual (comparar por ID)
+		if (categoriaActual && lista.some((c) => c.id === categoriaActual)) {
 			setMov((m) => (m ? { ...m, categoria: categoriaActual } : m));
 		} else {
-			setMov((m) => (m ? { ...m, categoria: lista[0]?.nombre ?? "" } : m));
+			setMov((m) => (m ? { ...m, categoria: lista[0]?.id ?? "" } : m));
 		}
 	}
 
-	// =====================================================
-	// GUARDAR CAMBIOS
-	// =====================================================
+	// Guardar cambios
 	async function guardar() {
 		if (!mov) return;
 
 		await supabase
 			.from("movimientos")
 			.update({
-				categoria: mov.categoria,
+				categoria: mov.categoria, // UUID
 				concepto: mov.concepto,
 				tipo: mov.tipo,
 				cantidad: Number(mov.cantidad),
@@ -127,7 +116,7 @@ export default function EditMovimiento() {
 			})
 			.eq("id", mov.id);
 
-		// Actualizar favorito
+		// actualizar favoritos
 		if (favorito) {
 			await supabase.from("favoritos").upsert({
 				id: favId ?? undefined,
@@ -141,33 +130,18 @@ export default function EditMovimiento() {
 			await supabase.from("favoritos").delete().eq("id", favId);
 		}
 
-		// 🟩 Cambiar el mes/año global para que el dashboard vaya al mes nuevo
 		setMes(Number(mov.mes));
 		setAño(mov.año);
 
 		navigate("/");
 	}
 
-	// =====================================================
-	// BORRAR
-	// =====================================================
+	// Eliminar
 	async function borrar() {
-		const { data: sessionData } = await supabase.auth.getSession();
-		const session = sessionData?.session;
-
 		await supabase.from("movimientos").delete().eq("id", id);
-
-		if (session) {
-			await supabase.auth.setSession({
-				access_token: session.access_token,
-				refresh_token: session.refresh_token,
-			});
-		}
-
 		navigate("/");
 	}
 
-	// Loader
 	if (!mov)
 		return (
 			<div className="h-screen flex items-center justify-center">
@@ -175,9 +149,6 @@ export default function EditMovimiento() {
 			</div>
 		);
 
-	// =====================================================
-	// UI
-	// =====================================================
 	return (
 		<div className="h-screen p-6 bg-[#E0F2F1]">
 
@@ -192,7 +163,7 @@ export default function EditMovimiento() {
 				</button>
 			</div>
 
-			{/* TIPO */}
+			{/* Tipo */}
 			<select
 				className="w-full p-3 border rounded mb-3"
 				value={mov.tipo}
@@ -206,27 +177,27 @@ export default function EditMovimiento() {
 				<option value="ingreso">Ingreso</option>
 			</select>
 
-			{/* CATEGORÍA */}
+			{/* Categoría */}
 			<select
 				className="w-full p-3 border rounded mb-3"
 				value={mov.categoria}
 				onChange={(e) => setMov({ ...mov, categoria: e.target.value })}
 			>
 				{categorias.map((c) => (
-					<option key={c.id} value={c.nombre}>
+					<option key={c.id} value={c.id}>
 						{formatearLabel(c.nombre)}
 					</option>
 				))}
 			</select>
 
-			{/* CONCEPTO */}
+			{/* Concepto */}
 			<input
 				className="w-full p-3 border rounded mb-3"
 				value={mov.concepto}
 				onChange={(e) => setMov({ ...mov, concepto: e.target.value })}
 			/>
 
-			{/* CANTIDAD */}
+			{/* Cantidad */}
 			<input
 				className="w-full p-3 border rounded mb-3"
 				type="number"
@@ -234,7 +205,7 @@ export default function EditMovimiento() {
 				onChange={(e) => setMov({ ...mov, cantidad: Number(e.target.value) })}
 			/>
 
-			{/* MES */}
+			{/* Mes */}
 			<select
 				className="w-full p-3 border rounded mb-3"
 				value={mov.mes}
@@ -247,7 +218,7 @@ export default function EditMovimiento() {
 				))}
 			</select>
 
-			{/* AÑO */}
+			{/* Año */}
 			<select
 				className="w-full p-3 border rounded mb-3"
 				value={mov.año}
@@ -262,7 +233,7 @@ export default function EditMovimiento() {
 				))}
 			</select>
 
-			{/* FAVORITO */}
+			{/* Favorito */}
 			<label className="flex items-center gap-2 mb-4">
 				<input
 					type="checkbox"
@@ -272,7 +243,7 @@ export default function EditMovimiento() {
 				<span className="font-semibold text-[#006C7A]">⭐ Guardar como favorito</span>
 			</label>
 
-			{/* BOTONES */}
+			{/* Botones */}
 			<div className="flex flex-col gap-3 mt-4">
 				<button
 					onClick={guardar}
