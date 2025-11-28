@@ -2,20 +2,24 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabase/client";
+import { useFecha } from "../context/FechaContext";
+
+interface Categoria {
+	id: string;
+	nombre: string;
+	tipo: "gasto" | "ingreso";
+}
 
 export default function AddMovimiento() {
 	const navigate = useNavigate();
+	const { mes, año } = useFecha();
 
-	const [tipo, setTipo] = useState("gasto");
-	const [categoria, setCategoria] = useState(""); // UUID
-	const [categorias, setCategorias] = useState<any[]>([]);
-
+	const [tipo, setTipo] = useState<"gasto" | "ingreso">("gasto");
+	const [categoria, setCategoria] = useState("");
+	const [categorias, setCategorias] = useState<Categoria[]>([]);
 	const [concepto, setConcepto] = useState("");
 	const [cantidad, setCantidad] = useState("");
 	const [favorito, setFavorito] = useState(false);
-
-	const mes = new Date().getMonth() + 1;
-	const año = new Date().getFullYear();
 
 	function formatearLabel(nombre: string) {
 		const conEspacios = nombre.replace(/([a-z])([A-Z])/g, "$1 $2");
@@ -25,8 +29,12 @@ export default function AddMovimiento() {
 			.join(" ");
 	}
 
-	// Cargar categorías según tipo
-	async function cargarCategorias(tipoSel: string) {
+	useEffect(() => {
+		cargarCategorias(tipo);
+	}, [tipo]);
+
+	// Cargar categorías
+	async function cargarCategorias(tipoSel: "gasto" | "ingreso") {
 		const { data } = await supabase
 			.from("categorias")
 			.select("*")
@@ -36,10 +44,6 @@ export default function AddMovimiento() {
 		if (data) setCategorias(data);
 	}
 
-	useEffect(() => {
-		cargarCategorias(tipo);
-	}, [tipo]);
-
 	// Guardar movimiento
 	async function guardar() {
 		if (!categoria || !concepto.trim() || !cantidad) return;
@@ -47,30 +51,58 @@ export default function AddMovimiento() {
 		const user = (await supabase.auth.getUser()).data.user;
 		if (!user) return;
 
-		await supabase.from("movimientos").insert({
+		const insertData = {
 			user_id: user.id,
 			tipo,
-			categoria, // UUID
+			categoria,
 			concepto,
 			cantidad: Number(cantidad),
 			mes: mes.toString(),
-			año
-		});
+			año,
+		};
+
+		const { data: inserted, error } = await supabase
+			.from("movimientos")
+			.insert(insertData)
+			.select()
+			.single();
+
+		if (error) return;
+
+		// Si se marcó favorito, lo guardamos
+		if (favorito && inserted) {
+			await supabase.from("favoritos").insert({
+				user_id: user.id,
+				tipo,
+				categoria,
+				concepto,
+				cantidad: Number(cantidad),
+			});
+		}
 
 		navigate("/");
 	}
 
-
 	return (
-		<div className="p-6">
+		<div className="h-screen p-6 bg-[#E0F2F1]">
 
-			<h1 className="text-xl font-bold mb-4">Añadir movimiento</h1>
+			{/* Encabezado */}
+			<div className="flex justify-between items-center mb-4">
+				<h1 className="text-xl font-bold text-[#006C7A]">Añadir Movimiento</h1>
+
+				<button
+					onClick={() => navigate(-1)}
+					className="px-4 py-2 bg-gray-300 rounded font-semibold"
+				>
+					← Volver
+				</button>
+			</div>
 
 			{/* Tipo */}
 			<select
+				className="w-full p-3 border rounded mb-3"
 				value={tipo}
-				onChange={(e) => setTipo(e.target.value)}
-				className="border p-2 w-full rounded mb-4"
+				onChange={(e) => setTipo(e.target.value as "gasto" | "ingreso")}
 			>
 				<option value="gasto">Gasto</option>
 				<option value="ingreso">Ingreso</option>
@@ -78,9 +110,9 @@ export default function AddMovimiento() {
 
 			{/* Categoría */}
 			<select
+				className="w-full p-3 border rounded mb-3"
 				value={categoria}
 				onChange={(e) => setCategoria(e.target.value)}
-				className="border p-2 w-full rounded mb-4"
 			>
 				<option value="">Seleccionar categoría</option>
 				{categorias.map((c) => (
@@ -92,39 +124,40 @@ export default function AddMovimiento() {
 
 			{/* Concepto */}
 			<input
-				type="text"
+				className="w-full p-3 border rounded mb-3"
 				placeholder="Concepto"
 				value={concepto}
 				onChange={(e) => setConcepto(e.target.value)}
-				className="border p-2 w-full rounded mb-4"
 			/>
 
 			{/* Cantidad */}
 			<input
+				className="w-full p-3 border rounded mb-3"
 				type="number"
 				placeholder="Cantidad"
 				value={cantidad}
 				onChange={(e) => setCantidad(e.target.value)}
-				className="border p-2 w-full rounded mb-4"
 			/>
 
 			{/* Favorito */}
-			<label className="flex items-center gap-2 mb-6">
+			<label className="flex items-center gap-2 mb-4">
 				<input
 					type="checkbox"
 					checked={favorito}
 					onChange={(e) => setFavorito(e.target.checked)}
 				/>
-				Marcar como favorito
+				<span className="font-semibold text-[#006C7A]">
+					⭐ Guardar como favorito
+				</span>
 			</label>
 
+			{/* Botón guardar */}
 			<button
 				onClick={guardar}
-				className="bg-[#0097A7] text-white p-3 rounded w-full font-semibold"
+				className="w-full bg-[#0097A7] p-3 text-white rounded font-semibold"
 			>
-				Guardar
+				Guardar movimiento
 			</button>
-
 		</div>
 	);
 }
