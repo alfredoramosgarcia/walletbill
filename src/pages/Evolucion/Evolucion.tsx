@@ -183,55 +183,94 @@ export default function Evolucion() {
 					{/* SCROLL SOLO EN MÓVIL */}
 					<div className="overflow-x-auto">
 
-						<table className="w-full text-left min-w-[380px]">
+						<table className="w-full text-left min-w-[420px]">
 
 							<thead>
 								<tr className="text-[#006C7A] font-semibold border-b">
-									<th className="py-2 w-1/2">Mes</th>
-									<th className="w-1/2">Total (€)</th>
+									<th className="py-2 w-1/3">Mes</th>
+									<th className="py-2 w-1/3">Total (€)</th>
+									<th className="py-2 w-1/3">Variación %</th>
 								</tr>
 							</thead>
 
 							<tbody>
-								{data.map(r => (
-									<tr key={r.id} className="border-b">
+								{data.map((r, index) => {
 
-										{/* Nombre del mes visible SIEMPRE */}
-										<td className="py-3 font-semibold text-[#006C7A]">
-											{r.etiqueta}
-										</td>
+									// ---- Cálculo del mes anterior ----
+									const anterior = index > 0 ? data[index - 1].total : null;
 
-										<td className="py-3">
+									let porcentaje: string | null = null;
 
-											{/* INPUT PEQUEÑO Y RESPONSIVE */}
-											<input
-												type="number"
-												inputMode="decimal"
-												className="
-													w-24 md:w-32
-													bg-white
-													text-[#006C7A]
-													border border-gray-300
-													rounded-lg
-													px-2 py-1
-													text-base
-													focus:outline-none
-													focus:ring-2
-													focus:ring-[#0097A7]
-													appearance-none
-												"
-												defaultValue={r.total}
-												onBlur={(e) =>
-													updateValue(r.id, Number(e.target.value))
-												}
-											/>
-										</td>
+									if (anterior === null) {
+										porcentaje = null; // Primer mes → sin comparación
 
-									</tr>
-								))}
+									} else if (anterior === 0) {
+										// Casos especiales cuando el mes anterior vale 0
+										if (r.total === 0) {
+											porcentaje = "0%";
+										} else {
+											porcentaje = "∞%";
+										}
+
+									} else {
+										// Cálculo normal
+										const diff = ((r.total - anterior) / anterior) * 100;
+										porcentaje = diff.toFixed(1) + "%";
+									}
+
+									// ---- Color del porcentaje ----
+									const color =
+										porcentaje === null
+											? "text-gray-500"
+											: porcentaje === "∞%"
+												? "text-green-600 font-semibold"
+												: porcentaje === "0%"
+													? "text-black font-semibold"
+													: porcentaje.startsWith("-")
+														? "text-red-600 font-semibold"
+														: "text-green-600 font-semibold";
+
+									return (
+										<tr key={r.id} className="border-b">
+
+											{/* Mes */}
+											<td className="py-3 font-semibold text-[#006C7A]">
+												{r.etiqueta}
+											</td>
+
+											{/* Total de ese mes */}
+											<td className="py-3">
+												<input
+													type="number"
+													inputMode="decimal"
+													className="
+										w-24 md:w-32
+										bg-white
+										text-[#006C7A]
+										border border-gray-300
+										rounded-lg px-2 py-1
+										text-base
+										focus:outline-none
+										focus:ring-2 focus:ring-[#0097A7]
+										appearance-none
+									"
+													defaultValue={r.total}
+													onBlur={(e) => updateValue(r.id, Number(e.target.value))}
+												/>
+											</td>
+
+											{/* Variación porcentual */}
+											<td className={`py-3 text-sm ${color}`}>
+												{porcentaje ?? "—"}
+											</td>
+
+										</tr>
+									);
+								})}
 							</tbody>
 
 						</table>
+
 
 					</div>
 
