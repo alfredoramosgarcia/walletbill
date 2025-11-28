@@ -66,6 +66,8 @@ export default function App() {
 										</ProtectedRoute>
 									}
 								/>
+
+								<Route path="/perfil" element={<Perfil />} />
 							</Route>
 
 							{/* ✅ Páginas CON header */}
@@ -77,7 +79,7 @@ export default function App() {
 								}
 							>
 								<Route path="/" element={<Dashboard />} />
-								<Route path="/perfil" element={<Perfil />} />
+
 							</Route>
 
 							{/* Redirección por defecto */}

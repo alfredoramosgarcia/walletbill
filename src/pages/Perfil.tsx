@@ -1,241 +1,207 @@
-import { useEffect, useState, useRef } from "react";
+// src/pages/PerfilUsuario.tsx
+import { useEffect, useState } from "react";
 import { supabase } from "../supabase/client";
 import { useNavigate } from "react-router-dom";
+import Alert from "../components/alerts/Alert";
 
-export default function Perfil() {
+export default function PerfilUsuario() {
 	const navigate = useNavigate();
 
 	const [nombre, setNombre] = useState("");
-	const [avatar, setAvatar] = useState("");
-	const [showPasswordBox, setShowPasswordBox] = useState(false);
+	const [email, setEmail] = useState("");
+	const [newPass, setNewPass] = useState("");
 
-	// Password fields
-	const [oldPassword, setOldPassword] = useState("");
-	const [newPassword, setNewPassword] = useState("");
-	const [newPassword2, setNewPassword2] = useState("");
+	const [alert, setAlert] = useState("");     // ← Usamos tu Alert
+	const [error, setError] = useState("");
+	const [loading, setLoading] = useState(false);
 
-	// Input file
-	const fileInputRef = useRef<HTMLInputElement | null>(null);
+	// Modal confirmación eliminar cuenta
+	const [confirmDelete, setConfirmDelete] = useState(false);
 
 	useEffect(() => {
 		cargarPerfil();
 	}, []);
 
-	// ==============================
-	// CARGAR PERFIL
-	// ==============================
 	async function cargarPerfil() {
-		const user = (await supabase.auth.getUser()).data.user;
+		const { data: session } = await supabase.auth.getUser();
+		const user = session?.user;
 		if (!user) return;
 
-		const { data } = await supabase
+		setEmail(user.email ?? "");
+
+		const { data: perfil } = await supabase
 			.from("profiles")
 			.select("*")
-			.eq("id", user.id)   // <-- CORREGIDO (antes: user_id)
+			.eq("id", user.id)
 			.single();
 
-		if (data) {
-			setNombre(data.nombre || "");
-			setAvatar(data.avatar_url || "");
-		}
+		if (perfil) setNombre(perfil.nombre);
 	}
 
+	async function guardarNombre() {
+		setLoading(true);
+		setError("");
 
-	// ==============================
-	// SUBIR AVATAR AL STORAGE
-	// ==============================
-	async function handleFileSelect(e: any) {
-		const file = e.target.files?.[0];
-		if (!file) return;
-
-		const user = (await supabase.auth.getUser()).data.user;
+		const { data: session } = await supabase.auth.getUser();
+		const user = session?.user;
 		if (!user) return;
-
-		const ext = file.name.split(".").pop();
-		const fileName = `${user.id}.${ext}`;
-		const filePath = `avatars/${fileName}`;
-
-		// Subir archivo
-		const { error: uploadError } = await supabase.storage
-			.from("avatars")
-			.upload(filePath, file, { upsert: true });
-
-		if (uploadError) {
-			console.log(uploadError);
-			alert("Error al subir la imagen");
-			return;
-		}
-
-		// Obtener URL pública
-		const { data: publicUrl } = supabase.storage
-			.from("avatars")
-			.getPublicUrl(filePath);
-
-		if (!publicUrl) {
-			alert("Error al obtener URL pública");
-			return;
-		}
-
-		setAvatar(publicUrl.publicUrl);
-	}
-
-	// ==============================
-	// GUARDAR PERFIL
-	// ==============================
-	async function guardarPerfil() {
-		const { data: userData } = await supabase.auth.getUser();
-		const user = userData?.user;
-
-		if (!user) return alert("No hay usuario autenticado");
 
 		const { error } = await supabase
 			.from("profiles")
-			.upsert(
-				{
-					id: user.id,       // 👈 CORRECTO: la PK es id
-					nombre,
-					avatar_url: avatar,
-				},
-				{ onConflict: "id" } // 👈 CORRECTO
-			);
+			.update({ nombre })
+			.eq("id", user.id);
+
+		setLoading(false);
+
+		if (error) setError("No se pudo actualizar el nombre.");
+		else setAlert("Nombre actualizado.");
+	}
+
+	async function cambiarPassword() {
+		setLoading(true);
+		setError("");
+
+		const { error } = await supabase.auth.updateUser({
+			password: newPass,
+		});
+
+		setLoading(false);
+
+		if (error) setError(error.message);
+		else setAlert("Contraseña actualizada.");
+	}
+
+	async function eliminarCuenta() {
+		setLoading(true);
+		setError("");
+
+		// Ejecutar función RPC delete_user
+		const { error } = await supabase.rpc("delete_user");
+
+		setLoading(false);
 
 		if (error) {
-			console.log(error);
-			alert("Error al guardar el perfil");
+			setError("Error eliminando cuenta.");
 			return;
 		}
 
-		navigate("/");
+		// Mostrar alerta de éxito
+		setAlert("Cuenta eliminada correctamente.");
+
+		setTimeout(async () => {
+			await supabase.auth.signOut();
+		}, 1800); // NO navigate
+
 	}
 
-
-	// ==============================
-	// CAMBIO DE CONTRASEÑA
-	// ==============================
-	async function cambiarPassword() {
-		if (!oldPassword || !newPassword || !newPassword2) {
-			return alert("Rellena todos los campos");
-		}
-
-		if (newPassword !== newPassword2) {
-			return alert("Las contraseñas nuevas no coinciden");
-		}
-
-		const user = (await supabase.auth.getUser()).data.user;
-		if (!user) return;
-
-		// Verificar contraseña antigua
-		const { error: signInError } = await supabase.auth.signInWithPassword({
-			email: user.email!,
-			password: oldPassword,
-		});
-
-		if (signInError) {
-			return alert("La contraseña actual no es correcta");
-		}
-
-		// Actualizar contraseña
-		const { error } = await supabase.auth.updateUser({
-			password: newPassword,
-		});
-
-		if (error) alert(error.message);
-		else alert("Contraseña cambiada correctamente ✔️");
-	}
 
 	return (
-		<div className="min-h-screen bg-[#E0F2F1] p-6">
-			<button
-				onClick={() => navigate(-1)}
-				className="mb-4 px-4 py-2 bg-gray-300 rounded"
-			>
-				⬅ Volver
-			</button>
+		<div className="min-h-screen flex items-center justify-center bg-[#D9ECEA] px-4">
 
-			<h1 className="text-2xl font-bold text-[#006C7A] mb-6">Editar Perfil</h1>
+			{/* ALERTA GLOBAL */}
+			<Alert message={alert} onClose={() => setAlert("")} />
 
-			<div className="bg-white p-4 rounded-xl shadow space-y-4">
+			<div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-lg">
 
-				{/* AVATAR */}
-				<div className="flex flex-col items-center gap-2">
-					<img
-						src={avatar || "/icono.png"}
-						className="w-28 h-28 rounded-full object-cover border cursor-pointer hover:scale-105 transition"
-						onClick={() => fileInputRef.current?.click()}
-					/>
-					<p className="text-sm text-gray-600">Toca la imagen para cambiarla</p>
-
-					<input
-						type="file"
-						accept="image/*"
-						ref={fileInputRef}
-						className="hidden"
-						onChange={handleFileSelect}
-					/>
+				{/* Título centrado + volver */}
+				<div className="relative flex items-center justify-center mb-6">
+					<h1 className="text-2xl font-bold text-[#006C7A] text-center">
+						Mi Perfil
+					</h1>
+					<button
+						onClick={() => navigate(-1)}
+						className="absolute right-0 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg text-sm font-semibold hover:bg-gray-300 transition"
+					>
+						←
+					</button>
 				</div>
 
-				{/* NOMBRE */}
-				<input
-					className="w-full p-3 border rounded"
-					placeholder="Nombre"
-					value={nombre}
-					onChange={(e) => setNombre(e.target.value)}
-				/>
+				{/* Error local */}
+				{error && (
+					<div className="mb-3 p-3 bg-red-100 border border-red-300 text-red-700 rounded text-center text-sm">
+						{error}
+					</div>
+				)}
 
-				<button
-					onClick={guardarPerfil}
-					className="w-full bg-[#0097A7] text-white p-3 rounded"
-				>
-					Guardar Perfil
-				</button>
+				{/* Formulario */}
+				<div className="space-y-6">
 
-				{/* CAMBIO CONTRASEÑA */}
-				<div className="mt-4">
-					<button
-						onClick={() => setShowPasswordBox(!showPasswordBox)}
-						className="text-sm text-[#006C7A] underline"
-					>
-						🔐 Cambiar contraseña
-					</button>
+					{/* Nombre */}
+					<div>
+						<label className="text-sm font-semibold text-gray-700">Nombre</label>
+						<input
+							className="w-full mt-1 p-3 rounded-xl border bg-gray-50"
+							type="text"
+							value={nombre}
+							onChange={(e) => setNombre(e.target.value)}
+						/>
+						<button
+							onClick={guardarNombre}
+							className="mt-2 px-4 py-2 bg-[#0097A7] text-white rounded-lg text-sm font-semibold hover:bg-[#008190] transition mx-auto block"
+						>
+							Guardar nombre
+						</button>
+					</div>
 
-					{showPasswordBox && (
-						<div className="mt-3 bg-gray-50 border rounded-lg p-4 space-y-3">
+					{/* Contraseña */}
+					<div>
+						<label className="text-sm font-semibold text-gray-700">Nueva contraseña</label>
+						<input
+							className="w-full mt-1 p-3 rounded-xl border bg-gray-50"
+							type="password"
+							value={newPass}
+							onChange={(e) => setNewPass(e.target.value)}
+						/>
+						<button
+							onClick={cambiarPassword}
+							className="mt-2 px-4 py-2 bg-[#0097A7] text-white rounded-lg text-sm font-semibold hover:bg-[#008190] transition mx-auto block"
+						>
+							Cambiar contraseña
+						</button>
+					</div>
 
-							<input
-								type="password"
-								className="w-full p-3 border rounded"
-								placeholder="Contraseña actual"
-								value={oldPassword}
-								onChange={(e) => setOldPassword(e.target.value)}
-							/>
+					{/* Borrar cuenta */}
+					<div className="text-center">
+						<button
+							onClick={() => setConfirmDelete(true)}
+							className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition"
+						>
+							🗑️ Borrar mi cuenta
+						</button>
+					</div>
+				</div>
+			</div>
 
-							<input
-								type="password"
-								className="w-full p-3 border rounded"
-								placeholder="Nueva contraseña"
-								value={newPassword}
-								onChange={(e) => setNewPassword(e.target.value)}
-							/>
+			{/* MODAL CONFIRMACIÓN ELIMINACIÓN */}
+			{confirmDelete && (
+				<div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+					<div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-sm text-center">
+						<h2 className="text-lg font-semibold text-gray-800 mb-4">
+							¿Eliminar tu cuenta?
+						</h2>
+						<p className="text-gray-600 mb-6 text-sm">
+							Esta acción no se puede deshacer.
+						</p>
 
-							<input
-								type="password"
-								className="w-full p-3 border rounded"
-								placeholder="Repetir nueva contraseña"
-								value={newPassword2}
-								onChange={(e) => setNewPassword2(e.target.value)}
-							/>
+						<div className="flex justify-center gap-4">
+							<button
+								onClick={() => setConfirmDelete(false)}
+								className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+							>
+								Cancelar
+							</button>
 
 							<button
-								onClick={cambiarPassword}
-								className="w-full bg-red-500 text-white p-3 rounded"
+								onClick={eliminarCuenta}
+								className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
 							>
-								Confirmar Cambio
+								Eliminar
 							</button>
 						</div>
-					)}
+					</div>
 				</div>
+			)}
 
-			</div>
 		</div>
 	);
 }

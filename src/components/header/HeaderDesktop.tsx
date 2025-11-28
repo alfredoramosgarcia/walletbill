@@ -3,7 +3,8 @@ import DesktopMenu from "./DesktopMenu";
 import MesAnoSelector from "../../components/header/MesAnoSelector";
 import type { Perfil } from "../../types/Perfil";
 import { Link, useNavigate } from "react-router-dom";
-import { HomeIcon } from "@heroicons/react/24/solid";
+import { UserCircleIcon } from "@heroicons/react/24/solid";
+
 
 interface Props {
 	perfil: Perfil | null;
@@ -52,9 +53,10 @@ export default function HeaderDesktop({
 			</div>
 
 			<div className="flex items-center gap-3">
-				<Link to="/" className="p-1 rounded-lg hover:bg-[#0097A710] transition">
-					<HomeIcon className="w-6 h-6 text-[#006C7A]" />
+				<Link to="/perfil" className="p-2 rounded-lg hover:bg-[#0097A710] transition">
+					<UserCircleIcon className="w-7 h-7 text-[#006C7A]" />
 				</Link>
+
 
 				<span className="font-semibold text-lg text-[#006C7A]">
 					Bienvenido, {perfil?.nombre}

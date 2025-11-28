@@ -129,7 +129,7 @@ export default function Evolucion() {
 					onChange={(e) => setAño(Number(e.target.value))}
 					className="border rounded-lg px-3 py-2 shadow bg-white text-[#006C7A] font-semibold ml-4"
 				>
-					{Array.from({ length: 10 }).map((_, i) => (
+					{Array.from({ length: 8 }).map((_, i) => (
 						<option key={i} value={2025 + i}>
 							{2025 + i}
 						</option>

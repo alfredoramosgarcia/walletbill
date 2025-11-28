@@ -2,7 +2,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../../supabase/client";
 import MesAnoSelector from "../../components/header/MesAnoSelector";
 import type { Perfil } from "../../types/Perfil";
-import { HomeIcon } from "@heroicons/react/24/solid";
+import { UserCircleIcon } from "@heroicons/react/24/solid";
+
 
 interface Props {
 	perfil: Perfil | null;
@@ -33,9 +34,10 @@ export default function HeaderMobile({
 	return (
 		<div className="md:hidden flex flex-col items-center pt-2 w-full">
 
-			<Link to="/" className="p-2 rounded-lg hover:bg-[#0097A710] transition">
-				<HomeIcon className="w-7 h-7 text-[#006C7A]" />
+			<Link to="/perfil" className="p-1 rounded-lg hover:bg-[#0097A710] transition">
+				<UserCircleIcon className="w-6 h-6 text-[#006C7A]" />
 			</Link>
+
 
 			{perfil && (
 				<div className="flex flex-col items-center gap-1 mb-2 mt-2">
