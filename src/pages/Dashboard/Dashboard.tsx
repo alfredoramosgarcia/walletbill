@@ -34,6 +34,8 @@ export default function Dashboard() {
 
 	/* ----------------------------- CATEGORÍAS ----------------------------- */
 	const { categorias } = useCategorias();
+
+	// 🔥 Aquí ya vienen filtradas (globales + usuario)
 	const gastos = categorias.filter((c) => c.tipo === "gasto");
 	const ingresos = categorias.filter((c) => c.tipo === "ingreso");
 
@@ -59,7 +61,7 @@ export default function Dashboard() {
 		await supabase.from("movimientos").insert({
 			user_id: user.id,
 			tipo: fav.tipo,
-			categoria: fav.categoria, // UUID OK
+			categoria: fav.categoria,
 			concepto: fav.concepto,
 			cantidad: fav.cantidad,
 			mes: mes.toString(),
@@ -79,7 +81,7 @@ export default function Dashboard() {
 			await supabase.from("movimientos").insert({
 				user_id: user.id,
 				tipo: fav.tipo,
-				categoria: fav.categoria, // UUID OK
+				categoria: fav.categoria,
 				concepto: fav.concepto,
 				cantidad: fav.cantidad,
 				mes: mes.toString(),

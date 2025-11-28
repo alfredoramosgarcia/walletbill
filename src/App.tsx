@@ -14,6 +14,7 @@ import Evolucion from "./pages/Evolucion/Evolucion";
 
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import RedirectIfLogged from "./components/auth/RedirectIfLogged";
+import GestionCategorias from "./pages/GestionCategorias";
 
 import MainLayout from "./layouts/MainLayout";
 import AuthLayout from "./layouts/AuthLayout";
@@ -54,6 +55,15 @@ export default function App() {
 									element={
 										<ProtectedRoute>
 											<EditMovimiento />
+										</ProtectedRoute>
+									}
+								/>
+
+								<Route
+									path="/categorias"
+									element={
+										<ProtectedRoute>
+											<GestionCategorias />
 										</ProtectedRoute>
 									}
 								/>

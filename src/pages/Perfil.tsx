@@ -8,12 +8,11 @@ export default function PerfilUsuario() {
 	const navigate = useNavigate();
 
 	const [nombre, setNombre] = useState("");
-	const [email, setEmail] = useState("");
 	const [newPass, setNewPass] = useState("");
 
 	const [alert, setAlert] = useState("");     // ← Usamos tu Alert
 	const [error, setError] = useState("");
-	const [loading, setLoading] = useState(false);
+	const [, setLoading] = useState(false);
 
 	// Modal confirmación eliminar cuenta
 	const [confirmDelete, setConfirmDelete] = useState(false);
@@ -26,8 +25,6 @@ export default function PerfilUsuario() {
 		const { data: session } = await supabase.auth.getUser();
 		const user = session?.user;
 		if (!user) return;
-
-		setEmail(user.email ?? "");
 
 		const { data: perfil } = await supabase
 			.from("profiles")

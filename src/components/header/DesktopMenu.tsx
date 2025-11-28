@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
 	onAdd: () => void;
@@ -17,6 +18,7 @@ export default function DesktopMenu({
 
 	const [open, setOpen] = useState(false);
 	const menuRef = useRef<HTMLDivElement>(null);
+	const navigate = useNavigate();
 
 	// Cerrar al hacer clic fuera
 	useEffect(() => {
@@ -62,6 +64,14 @@ export default function DesktopMenu({
 					>
 						⭐ Favoritos
 					</button>
+
+					<button
+						onClick={() => navigate("/categorias")}
+						className="flex items-center gap-2 px-3 py-2 rounded-lg text-[#006C7A] font-semibold hover:bg-[#0097A710] transition"
+					>
+						📂 Categorías
+					</button>
+
 
 					{/* LIMPIAR MES */}
 					<button

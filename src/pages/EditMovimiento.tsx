@@ -4,7 +4,6 @@ import { supabase } from "../supabase/client";
 import { useParams, useNavigate } from "react-router-dom";
 import { useFecha } from "../context/FechaContext";
 
-// Tipos
 interface Categoria {
 	id: string;
 	nombre: string;
@@ -15,7 +14,7 @@ interface Movimiento {
 	id: number;
 	user_id: string;
 	tipo: "gasto" | "ingreso";
-	categoria: string; // UUID
+	categoria: string;
 	concepto: string;
 	cantidad: number;
 	mes: string;
@@ -47,7 +46,6 @@ export default function EditMovimiento() {
 		cargar();
 	}, []);
 
-	// Cargar movimiento
 	async function cargar() {
 		const { data } = await supabase
 			.from("movimientos")
@@ -57,12 +55,10 @@ export default function EditMovimiento() {
 
 		if (!data) return;
 
-		setMov(data as Movimiento);
+		setMov(data);
 
-		// cargar categorías según tipo
 		await cargarCategorias(data.tipo, data.categoria);
 
-		// Revisar favorito
 		const { data: fav } = await supabase
 			.from("favoritos")
 			.select("*")
@@ -76,11 +72,7 @@ export default function EditMovimiento() {
 		setFavId(fav?.id ?? null);
 	}
 
-	// Cargar categorías
-	async function cargarCategorias(
-		tipoSel: "gasto" | "ingreso",
-		categoriaActual?: string
-	) {
+	async function cargarCategorias(tipoSel: "gasto" | "ingreso", categoriaActual?: string) {
 		const { data } = await supabase
 			.from("categorias")
 			.select("*")
@@ -89,25 +81,20 @@ export default function EditMovimiento() {
 
 		if (!data) return;
 
-		const lista = data as Categoria[];
-		setCategorias(lista);
+		setCategorias(data);
 
-		// Mantener categoría actual (comparar por ID)
-		if (categoriaActual && lista.some((c) => c.id === categoriaActual)) {
+		if (categoriaActual && data.some((c) => c.id === categoriaActual)) {
 			setMov((m) => (m ? { ...m, categoria: categoriaActual } : m));
-		} else {
-			setMov((m) => (m ? { ...m, categoria: lista[0]?.id ?? "" } : m));
 		}
 	}
 
-	// Guardar cambios
 	async function guardar() {
 		if (!mov) return;
 
 		await supabase
 			.from("movimientos")
 			.update({
-				categoria: mov.categoria, // UUID
+				categoria: mov.categoria,
 				concepto: mov.concepto,
 				tipo: mov.tipo,
 				cantidad: Number(mov.cantidad),
@@ -116,7 +103,6 @@ export default function EditMovimiento() {
 			})
 			.eq("id", mov.id);
 
-		// actualizar favoritos
 		if (favorito) {
 			await supabase.from("favoritos").upsert({
 				id: favId ?? undefined,
@@ -132,11 +118,9 @@ export default function EditMovimiento() {
 
 		setMes(Number(mov.mes));
 		setAño(mov.año);
-
 		navigate("/");
 	}
 
-	// Eliminar
 	async function borrar() {
 		await supabase.from("movimientos").delete().eq("id", id);
 		navigate("/");
@@ -150,114 +134,115 @@ export default function EditMovimiento() {
 		);
 
 	return (
-		<div className="h-screen p-6 bg-[#E0F2F1]">
+		<div className="min-h-screen flex items-center justify-center bg-[#D9ECEA] px-4">
+			<div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-lg">
 
-			<div className="flex justify-between items-center mb-4">
-				<h1 className="text-xl font-bold text-[#006C7A]">Editar Movimiento</h1>
+				{/* Título + volver */}
+				<div className="relative flex items-center justify-center mb-6">
+					<h1 className="text-2xl font-bold text-[#006C7A]">Editar Movimiento</h1>
+					<button
+						onClick={() => navigate(-1)}
+						className="absolute right-0 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg text-sm font-semibold hover:bg-gray-300 transition"
+					>
+						←
+					</button>
+				</div>
 
-				<button
-					onClick={() => navigate(-1)}
-					className="px-4 py-2 bg-gray-300 rounded font-semibold"
-				>
-					← Volver
-				</button>
-			</div>
+				<div className="space-y-6">
 
-			{/* Tipo */}
-			<select
-				className="w-full p-3 border rounded mb-3"
-				value={mov.tipo}
-				onChange={(e) => {
-					const nuevoTipo = e.target.value as "gasto" | "ingreso";
-					setMov({ ...mov, tipo: nuevoTipo });
-					cargarCategorias(nuevoTipo, mov.categoria);
-				}}
-			>
-				<option value="gasto">Gasto</option>
-				<option value="ingreso">Ingreso</option>
-			</select>
+					{/* Tipo */}
+					<select
+						className="w-full p-3 rounded-xl border bg-gray-50"
+						value={mov.tipo}
+						onChange={(e) => {
+							const nuevoTipo = e.target.value as "gasto" | "ingreso";
+							setMov({ ...mov, tipo: nuevoTipo });
+							cargarCategorias(nuevoTipo, mov.categoria);
+						}}
+					>
+						<option value="gasto">Gasto</option>
+						<option value="ingreso">Ingreso</option>
+					</select>
 
-			{/* Categoría */}
-			<select
-				className="w-full p-3 border rounded mb-3"
-				value={mov.categoria}
-				onChange={(e) => setMov({ ...mov, categoria: e.target.value })}
-			>
-				{categorias.map((c) => (
-					<option key={c.id} value={c.id}>
-						{formatearLabel(c.nombre)}
-					</option>
-				))}
-			</select>
+					{/* Categoría */}
+					<select
+						className="w-full p-3 rounded-xl border bg-gray-50"
+						value={mov.categoria}
+						onChange={(e) => setMov({ ...mov, categoria: e.target.value })}
+					>
+						{categorias.map((c) => (
+							<option key={c.id} value={c.id}>
+								{formatearLabel(c.nombre)}
+							</option>
+						))}
+					</select>
 
-			{/* Concepto */}
-			<input
-				className="w-full p-3 border rounded mb-3"
-				value={mov.concepto}
-				onChange={(e) => setMov({ ...mov, concepto: e.target.value })}
-			/>
+					{/* Concepto */}
+					<input
+						className="w-full p-3 rounded-xl border bg-gray-50"
+						value={mov.concepto}
+						onChange={(e) => setMov({ ...mov, concepto: e.target.value })}
+					/>
 
-			{/* Cantidad */}
-			<input
-				className="w-full p-3 border rounded mb-3"
-				type="number"
-				value={mov.cantidad}
-				onChange={(e) => setMov({ ...mov, cantidad: Number(e.target.value) })}
-			/>
+					{/* Cantidad */}
+					<input
+						className="w-full p-3 rounded-xl border bg-gray-50"
+						type="number"
+						value={mov.cantidad}
+						onChange={(e) => setMov({ ...mov, cantidad: Number(e.target.value) })}
+					/>
 
-			{/* Mes */}
-			<select
-				className="w-full p-3 border rounded mb-3"
-				value={mov.mes}
-				onChange={(e) => setMov({ ...mov, mes: e.target.value })}
-			>
-				{meses.map((m) => (
-					<option key={m} value={m}>
-						Mes {m}
-					</option>
-				))}
-			</select>
+					{/* Mes */}
+					<select
+						className="w-full p-3 rounded-xl border bg-gray-50"
+						value={mov.mes}
+						onChange={(e) => setMov({ ...mov, mes: e.target.value })}
+					>
+						{meses.map((m) => (
+							<option key={m} value={m}>
+								{m}
+							</option>
+						))}
+					</select>
 
-			{/* Año */}
-			<select
-				className="w-full p-3 border rounded mb-3"
-				value={mov.año}
-				onChange={(e) =>
-					setMov({ ...mov, año: Number(e.target.value) })
-				}
-			>
-				{años.map((a) => (
-					<option key={a} value={a}>
-						{a}
-					</option>
-				))}
-			</select>
+					{/* Año */}
+					<select
+						className="w-full p-3 rounded-xl border bg-gray-50"
+						value={mov.año}
+						onChange={(e) => setMov({ ...mov, año: Number(e.target.value) })}
+					>
+						{años.map((a) => (
+							<option key={a} value={a}>
+								{a}
+							</option>
+						))}
+					</select>
 
-			{/* Favorito */}
-			<label className="flex items-center gap-2 mb-4">
-				<input
-					type="checkbox"
-					checked={favorito}
-					onChange={(e) => setFavorito(e.target.checked)}
-				/>
-				<span className="font-semibold text-[#006C7A]">⭐ Guardar como favorito</span>
-			</label>
+					{/* Favorito */}
+					<label className="flex items-center gap-2">
+						<input
+							type="checkbox"
+							checked={favorito}
+							onChange={(e) => setFavorito(e.target.checked)}
+						/>
+						<span className="font-semibold text-[#006C7A]">⭐ Guardar como favorito</span>
+					</label>
 
-			{/* Botones */}
-			<div className="flex flex-col gap-3 mt-4">
-				<button
-					onClick={guardar}
-					className="w-full bg-[#0097A7] p-3 text-white rounded font-semibold"
-				>
-					Guardar cambios
-				</button>
+					{/* Botones */}
+					<button
+						onClick={guardar}
+						className="w-full bg-[#0097A7] p-3 text-white rounded-lg font-semibold hover:bg-[#008190] transition"
+					>
+						Guardar cambios
+					</button>
 
-				<button
-					onClick={borrar}
-					className="w-full bg-red-500 p-3 text-white rounded font-semibold"
-				>
-					🗑️ Eliminar movimiento
-				</button>
+					<button
+						onClick={borrar}
+						className="w-full bg-red-600 p-3 text-white rounded-lg font-semibold hover:bg-red-700 transition"
+					>
+						🗑️ Eliminar movimiento
+					</button>
+				</div>
 			</div>
 		</div>
 	);
