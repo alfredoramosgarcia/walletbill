@@ -34,18 +34,22 @@ export default function HeaderMobile({
 	return (
 		<div className="md:hidden flex flex-col items-center pt-2 w-full">
 
-			<Link to="/perfil" className="p-1 rounded-lg hover:bg-[#0097A710] transition">
-				<UserCircleIcon className="w-6 h-6 text-[#006C7A]" />
-			</Link>
+
 
 
 			{perfil && (
-				<div className="flex flex-col items-center gap-1 mb-2 mt-2">
+				<div className="flex items-center gap-1 mb-2 mt-2">
+					<Link to="/perfil" className="p-1 rounded-lg hover:bg-[#0097A710] transition">
+						<UserCircleIcon className="w-6 h-6 text-[#006C7A]" />
+					</Link>
+
 					<span className="font-semibold text-lg text-[#006C7A]">
 						Bienvenido, {perfil.nombre}
 					</span>
 				</div>
 			)}
+
+
 
 			<button
 				onClick={() => setMenuOpen(!menuOpen)}

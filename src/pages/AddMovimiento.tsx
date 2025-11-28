@@ -100,8 +100,10 @@ export default function AddMovimiento() {
 			<div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-lg">
 
 				{/* Título + volver */}
-				<div className="relative flex items-center justify-center mb-6">
+				{/* Título + volver */}
+				<div className="relative flex items-center justify-center mb-6 pr-10">
 					<h1 className="text-2xl font-bold text-[#006C7A]">Añadir Movimiento</h1>
+
 					<button
 						onClick={() => navigate(-1)}
 						className="absolute right-0 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg text-sm font-semibold hover:bg-gray-300 transition"
@@ -109,6 +111,7 @@ export default function AddMovimiento() {
 						←
 					</button>
 				</div>
+
 
 
 				<div className="space-y-6">

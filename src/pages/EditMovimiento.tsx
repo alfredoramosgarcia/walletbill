@@ -138,7 +138,7 @@ export default function EditMovimiento() {
 			<div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-lg">
 
 				{/* Título + volver */}
-				<div className="relative flex items-center justify-center mb-6">
+				<div className="relative flex items-center justify-center mb-6 pr-10">
 					<h1 className="text-2xl font-bold text-[#006C7A]">Editar Movimiento</h1>
 					<button
 						onClick={() => navigate(-1)}
