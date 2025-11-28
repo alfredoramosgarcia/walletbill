@@ -22,7 +22,7 @@ export default function Categorias() {
 	const [alert, setAlert] = useState("");
 	const [alertType, setAlertType] = useState<"success" | "error">("success");
 
-	const [error, setError] = useState("");
+	const [, setError] = useState("");
 	const [, setLoading] = useState(false);
 
 	const [confirmDelete, setConfirmDelete] = useState<string | null>(null);

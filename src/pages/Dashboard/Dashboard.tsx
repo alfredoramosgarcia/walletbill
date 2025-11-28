@@ -1,6 +1,5 @@
 // src/pages/Dashboard/Dashboard.tsx
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../hooks/useAuth";
 import { useMovimientos } from "../../hooks/useMovimientos";
@@ -19,7 +18,6 @@ import { supabase } from "../../supabase/client";
 import type { Favorito } from "../../types/Favorito";
 
 export default function Dashboard() {
-	const navigate = useNavigate();
 
 	const { mes, año } = useFecha();
 	const { user } = useAuth();
