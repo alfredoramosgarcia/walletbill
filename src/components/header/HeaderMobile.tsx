@@ -55,82 +55,91 @@ export default function HeaderMobile({
 			</button>
 
 			{menuOpen && (
-				<div className="w-full bg-white shadow-xl rounded-xl p-4 flex flex-col gap-3">
+				<div className="w-full bg-white border border-gray-200 rounded-xl p-3 mt-2">
 
-					<button
-						className="bg-[#0097A7] text-white px-5 py-3 rounded-lg shadow text-center font-semibold hover:bg-[#007c8b]"
-						onClick={() => {
-							navigate("/add");
-							setMenuOpen(false);
-						}}
-					>
-						+ Añadir Movimiento
-					</button>
+					<div className="flex flex-col divide-y divide-gray-200">
 
-					<button
-						onClick={() => {
-							onShowFav();
-							setMenuOpen(false);
-						}}
-						className="bg-yellow-500 text-white px-5 py-3 rounded-lg shadow text-center font-semibold hover:bg-yellow-600"
-					>
-						⭐ Favoritos
-					</button>
+						<button
+							onClick={() => {
+								navigate("/add");
+								setMenuOpen(false);
+							}}
+							className="text-center py-3 px-2 text-[#006C7A] font-semibold hover:bg-gray-100 transition"
+						>
+							+ Añadir movimiento
+						</button>
 
-					<button
-						onClick={() => {
-							onLimpiarMes();
-							setMenuOpen(false);
-						}}
-						className="bg-red-500 text-white px-5 py-3 rounded-lg shadow text-center font-semibold hover:bg-red-600"
-					>
-						🧹 Limpiar mes
-					</button>
+						<button
+							onClick={() => {
+								onShowFav();
+								setMenuOpen(false);
+							}}
+							className="text-center py-3 px-2 text-[#006C7A] font-semibold hover:bg-gray-100 transition"
+						>
+							⭐ Favoritos
+						</button>
 
-					<Link
-						to="/categorias"
-						className="block px-4 py-2 hover:bg-gray-100 transition"
-					>
-						📁 Categorías
-					</Link>
+						<button
+							onClick={() => {
+								onLimpiarMes();
+								setMenuOpen(false);
+							}}
+							className="text-centerpy-3 px-2 text-red-600 font-semibold hover:bg-red-50 transition"
+						>
+							🧹 Limpiar mes
+						</button>
 
+						<button
+							onClick={() => {
+								navigate("/categorias");
+								setMenuOpen(false);
+							}}
+							className="text-centerpy-3 px-2 text-[#006C7A] font-semibold hover:bg-gray-100 transition"
+						>
+							📂 Categorías
+						</button>
 
-					<button
-						onClick={() => {
-							navigate("/evolucion");
-							setMenuOpen(false);
-						}}
-						className="px-5 py-3 rounded-lg shadow font-semibold border border-[#0097A7] text-[#006C7A] bg-white hover:bg-[#E0F4F5]"
-					>
-						📈 Evolución
-					</button>
+						<button
+							onClick={async () => {
+								await supabase.auth.signOut();
+								localStorage.removeItem("supabase.auth.token");
+								localStorage.removeItem("supabase.auth.refresh_token");
 
-					<button
-						onClick={async () => {
-							await supabase.auth.signOut();
+								navigate("/login", { replace: true });
+								window.location.reload();
+							}}
+							className="text-centerpy-3 px-2 text-red-600 font-semibold hover:bg-red-50 transition"
+						>
+							Cerrar sesión
+						</button>
 
-							// Eliminar tokens locales para asegurarlo
-							localStorage.removeItem("supabase.auth.token");
-							localStorage.removeItem("supabase.auth.refresh_token");
-
-							navigate("/login", { replace: true });
-							window.location.reload(); // << fuerza actualización de AuthProvider
-						}}
-						className="bg-white/80 text-red-600 font-semibold px-6 py-3 rounded shadow hover:bg-red-50"
-					>
-						Cerrar sesión
-					</button>
-
+					</div>
 
 				</div>
 			)}
 
-			<MesAnoSelector
-				mes={mes}
-				año={año}
-				onMesChange={onMesChange}
-				onAñoChange={onAñoChange}
-			/>
+			<div className="mt-2">
+				<button
+					onClick={() => {
+						navigate("/evolucion");
+						setMenuOpen(false);
+					}}
+					className="text-center py-3 px-2 text-[#006C7A] font-semibold hover:bg-gray-100 transition"
+				>
+					📈 Evolución
+				</button>
+			</div>
+
+
+			<div className="mt-4">
+				<MesAnoSelector
+					mes={mes}
+					año={año}
+					onMesChange={onMesChange}
+					onAñoChange={onAñoChange}
+				/>
+			</div>
+
 		</div>
 	);
 }

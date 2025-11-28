@@ -23,12 +23,12 @@ export default function Categorias() {
 	const [error, setError] = useState("");
 	const [, setLoading] = useState(false);
 
-	// MODAL PARA CONFIRMAR ELIMINACIÓN
+	// Modal borrar
 	const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
-	// ========================================
-	// CARGAR CATEGORÍAS
-	// ========================================
+	// ===========================
+	// Cargar categorías
+	// ===========================
 	async function cargarCategorias() {
 		const user = (await supabase.auth.getUser()).data.user;
 		if (!user) return;
@@ -36,20 +36,19 @@ export default function Categorias() {
 		const { data } = await supabase
 			.from("categorias")
 			.select("*")
-			.eq("user_id", user.id) // ✅ SOLO MIS CATEGORÍAS
+			.eq("user_id", user.id)
 			.order("nombre", { ascending: true });
 
 		if (data) setCategorias(data);
 	}
 
-
 	useEffect(() => {
 		cargarCategorias();
 	}, []);
 
-	// ========================================
-	// GUARDAR / EDITAR CATEGORÍA
-	// ========================================
+	// ===========================
+	// Guardar / editar categoría
+	// ===========================
 	async function guardarCategoria() {
 		if (!nombre.trim()) return;
 
@@ -62,13 +61,11 @@ export default function Categorias() {
 		let resp;
 
 		if (editId) {
-			// Actualizar categoría existente
 			resp = await supabase
 				.from("categorias")
 				.update({ nombre, tipo })
 				.eq("id", editId);
 		} else {
-			// Crear categoría nueva
 			resp = await supabase.from("categorias").insert({
 				nombre,
 				tipo,
@@ -91,9 +88,9 @@ export default function Categorias() {
 		cargarCategorias();
 	}
 
-	// ========================================
-	// ELIMINAR CATEGORÍA
-	// ========================================
+	// ===========================
+	// Borrar categoría
+	// ===========================
 	async function borrarCategoria(id: string) {
 		await supabase.from("categorias").delete().eq("id", id);
 
@@ -102,9 +99,9 @@ export default function Categorias() {
 		cargarCategorias();
 	}
 
-	// ========================================
-	// FORMATEAR NOMBRE PARA MOSTRAR
-	// ========================================
+	// ===========================
+	// Formatear nombre visual
+	// ===========================
 	function formatLabel(str: string) {
 		return str
 			.replace(/([a-z])([A-Z])/g, "$1 $2")
@@ -113,9 +110,7 @@ export default function Categorias() {
 			.join(" ");
 	}
 
-	// ========================================
-	// FILTROS
-	// ========================================
+	// Filtros
 	const gastos = categorias.filter((c) => c.tipo === "gasto");
 	const ingresos = categorias.filter((c) => c.tipo === "ingreso");
 
@@ -126,13 +121,13 @@ export default function Categorias() {
 
 			<div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-3xl">
 
-				{/* Título y volver */}
+				{/* Título + Volver */}
 				<div className="relative flex items-center justify-center mb-6">
 					<h1 className="text-2xl font-bold text-[#006C7A]">Categorías</h1>
 
 					<button
 						onClick={() => navigate(-1)}
-						className="absolute right-0 px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
+						className="absolute right-0 px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition text-black"
 					>
 						←
 					</button>
@@ -148,18 +143,18 @@ export default function Categorias() {
 				{/* FORMULARIO */}
 				<div className="bg-gray-50 p-4 rounded-xl mb-8">
 
-					<label className="font-semibold text-gray-700">Nombre</label>
+					<label className="font-semibold text-black">Nombre</label>
 					<input
 						type="text"
-						className="w-full p-3 border rounded-xl bg-white mt-1 mb-3"
+						className="w-full p-3 border rounded-xl bg-white mt-1 mb-3 text-black"
 						placeholder="Ej. Alquiler, Sueldo..."
 						value={nombre}
 						onChange={(e) => setNombre(e.target.value)}
 					/>
 
-					<label className="font-semibold text-gray-700">Tipo</label>
+					<label className="font-semibold text-black">Tipo</label>
 					<select
-						className="w-full p-3 border rounded-xl bg-white mt-1 mb-4"
+						className="w-full p-3 border rounded-xl bg-white mt-1 mb-4 text-black"
 						value={tipo}
 						onChange={(e) => setTipo(e.target.value as "gasto" | "ingreso")}
 					>
@@ -181,7 +176,7 @@ export default function Categorias() {
 								setNombre("");
 								setTipo("gasto");
 							}}
-							className="w-full mt-2 bg-gray-200 text-gray-800 p-3 rounded-lg font-semibold hover:bg-gray-300 transition"
+							className="w-full mt-2 bg-gray-200 text-black p-3 rounded-lg font-semibold hover:bg-gray-300 transition"
 						>
 							Cancelar edición
 						</button>
@@ -205,7 +200,7 @@ export default function Categorias() {
 									key={cat.id}
 									className="flex justify-between items-center bg-gray-50 p-3 rounded-lg shadow-sm"
 								>
-									<span>{formatLabel(cat.nombre)}</span>
+									<span className="text-black">{formatLabel(cat.nombre)}</span>
 
 									<div className="flex gap-2">
 										<button
@@ -214,7 +209,7 @@ export default function Categorias() {
 												setNombre(cat.nombre);
 												setTipo(cat.tipo);
 											}}
-											className="px-3 py-1 bg-yellow-300 rounded-lg hover:bg-yellow-400 text-sm"
+											className="px-3 py-1 bg-yellow-300 rounded-lg hover:bg-yellow-400 text-sm text-black"
 										>
 											Editar
 										</button>
@@ -245,7 +240,7 @@ export default function Categorias() {
 									key={cat.id}
 									className="flex justify-between items-center bg-gray-50 p-3 rounded-lg shadow-sm"
 								>
-									<span>{formatLabel(cat.nombre)}</span>
+									<span className="text-black">{formatLabel(cat.nombre)}</span>
 
 									<div className="flex gap-2">
 										<button
@@ -254,7 +249,7 @@ export default function Categorias() {
 												setNombre(cat.nombre);
 												setTipo(cat.tipo);
 											}}
-											className="px-3 py-1 bg-yellow-300 rounded-lg hover:bg-yellow-400 text-sm"
+											className="px-3 py-1 bg-yellow-300 rounded-lg hover:bg-yellow-400 text-sm text-black"
 										>
 											Editar
 										</button>
@@ -274,11 +269,11 @@ export default function Categorias() {
 				</div>
 			</div>
 
-			{/* MODAL DE CONFIRMACIÓN */}
+			{/* MODAL BORRAR */}
 			{confirmDelete && (
 				<div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
 					<div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-sm text-center">
-						<h2 className="text-lg font-semibold mb-4 text-gray-800">
+						<h2 className="text-lg font-semibold mb-4 text-black">
 							¿Eliminar categoría?
 						</h2>
 
@@ -289,10 +284,11 @@ export default function Categorias() {
 						<div className="flex justify-center gap-4">
 							<button
 								onClick={() => setConfirmDelete(null)}
-								className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+								className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 text-black"
 							>
 								Cancelar
 							</button>
+
 							<button
 								onClick={() => borrarCategoria(confirmDelete)}
 								className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"

@@ -10,11 +10,10 @@ export default function PerfilUsuario() {
 	const [nombre, setNombre] = useState("");
 	const [newPass, setNewPass] = useState("");
 
-	const [alert, setAlert] = useState("");     // ← Usamos tu Alert
+	const [alert, setAlert] = useState("");
 	const [error, setError] = useState("");
 	const [, setLoading] = useState(false);
 
-	// Modal confirmación eliminar cuenta
 	const [confirmDelete, setConfirmDelete] = useState(false);
 
 	useEffect(() => {
@@ -72,7 +71,6 @@ export default function PerfilUsuario() {
 		setLoading(true);
 		setError("");
 
-		// Ejecutar función RPC delete_user
 		const { error } = await supabase.rpc("delete_user");
 
 		setLoading(false);
@@ -82,56 +80,49 @@ export default function PerfilUsuario() {
 			return;
 		}
 
-		// Mostrar alerta de éxito
 		setAlert("Cuenta eliminada correctamente.");
 		await supabase.auth.signOut();
 
-		// Eliminar tokens locales para asegurarlo
 		localStorage.removeItem("supabase.auth.token");
 		localStorage.removeItem("supabase.auth.refresh_token");
 
 		navigate("/login", { replace: true });
-		window.location.reload(); // << fuerza actualización de AuthProvider
-
+		window.location.reload();
 	}
-
 
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-[#D9ECEA] px-4">
 
-			{/* ALERTA GLOBAL */}
 			<Alert message={alert} onClose={() => setAlert("")} />
 
 			<div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-lg">
 
-				{/* Título centrado + volver */}
+				{/* Título + volver */}
 				<div className="relative flex items-center justify-center mb-6">
-					<h1 className="text-2xl font-bold text-[#006C7A] text-center">
-						Mi Perfil
-					</h1>
+					<h1 className="text-2xl font-bold text-[#006C7A]">Mi Perfil</h1>
+
 					<button
 						onClick={() => navigate(-1)}
-						className="absolute right-0 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg text-sm font-semibold hover:bg-gray-300 transition"
+						className="absolute right-0 px-4 py-2 bg-gray-200 text-black rounded-lg text-sm font-semibold hover:bg-gray-300 transition"
 					>
 						←
 					</button>
 				</div>
 
-				{/* Error local */}
+				{/* Error */}
 				{error && (
 					<div className="mb-3 p-3 bg-red-100 border border-red-300 text-red-700 rounded text-center text-sm">
 						{error}
 					</div>
 				)}
 
-				{/* Formulario */}
 				<div className="space-y-6">
 
 					{/* Nombre */}
 					<div>
-						<label className="text-sm font-semibold text-gray-700">Nombre</label>
+						<label className="text-sm font-semibold text-black">Nombre</label>
 						<input
-							className="w-full mt-1 p-3 rounded-xl border bg-gray-50"
+							className="w-full mt-1 p-3 rounded-xl border bg-gray-50 text-black"
 							type="text"
 							value={nombre}
 							onChange={(e) => setNombre(e.target.value)}
@@ -146,9 +137,9 @@ export default function PerfilUsuario() {
 
 					{/* Contraseña */}
 					<div>
-						<label className="text-sm font-semibold text-gray-700">Nueva contraseña</label>
+						<label className="text-sm font-semibold text-black">Nueva contraseña</label>
 						<input
-							className="w-full mt-1 p-3 rounded-xl border bg-gray-50"
+							className="w-full mt-1 p-3 rounded-xl border bg-gray-50 text-black"
 							type="password"
 							value={newPass}
 							onChange={(e) => setNewPass(e.target.value)}
@@ -170,24 +161,26 @@ export default function PerfilUsuario() {
 							🗑️ Borrar mi cuenta
 						</button>
 					</div>
+
 				</div>
 			</div>
 
-			{/* MODAL CONFIRMACIÓN ELIMINACIÓN */}
+			{/* Modal delete */}
 			{confirmDelete && (
 				<div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
 					<div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-sm text-center">
-						<h2 className="text-lg font-semibold text-gray-800 mb-4">
+						<h2 className="text-lg font-semibold text-black mb-4">
 							¿Eliminar tu cuenta?
 						</h2>
-						<p className="text-gray-600 mb-6 text-sm">
+
+						<p className="text-gray-600 text-sm mb-6">
 							Esta acción no se puede deshacer.
 						</p>
 
 						<div className="flex justify-center gap-4">
 							<button
 								onClick={() => setConfirmDelete(false)}
-								className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+								className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 text-black"
 							>
 								Cancelar
 							</button>

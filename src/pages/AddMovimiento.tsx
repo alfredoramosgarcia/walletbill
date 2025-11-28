@@ -44,10 +44,16 @@ export default function AddMovimiento() {
 	}
 
 	async function guardar() {
-		if (!categoria || !concepto.trim() || !cantidad) return;
+		if (!categoria || !concepto.trim() || !cantidad) {
+			console.log("⛔ Falta algún campo");
+			return;
+		}
 
 		const user = (await supabase.auth.getUser()).data.user;
-		if (!user) return;
+		if (!user) {
+			console.log("⛔ No hay usuario");
+			return;
+		}
 
 		const insertData = {
 			user_id: user.id,
@@ -59,13 +65,21 @@ export default function AddMovimiento() {
 			año,
 		};
 
+		console.log("📤 Datos a insertar:", insertData);
+
 		const { data: inserted, error } = await supabase
 			.from("movimientos")
 			.insert(insertData)
 			.select()
 			.single();
 
-		if (error) return;
+		if (error) {
+			console.error("❌ ERROR Supabase:", error);
+			alert("Error al guardar: " + error.message);
+			return;
+		}
+
+		console.log("✔ Insertado correctamente", inserted);
 
 		if (favorito && inserted) {
 			await supabase.from("favoritos").insert({
@@ -80,14 +94,14 @@ export default function AddMovimiento() {
 		navigate("/");
 	}
 
+
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-[#D9ECEA] px-4">
 			<div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-lg">
 
-				{/* Título centrado + volver */}
+				{/* Título + volver */}
 				<div className="relative flex items-center justify-center mb-6">
 					<h1 className="text-2xl font-bold text-[#006C7A]">Añadir Movimiento</h1>
-
 					<button
 						onClick={() => navigate(-1)}
 						className="absolute right-0 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg text-sm font-semibold hover:bg-gray-300 transition"
@@ -96,11 +110,16 @@ export default function AddMovimiento() {
 					</button>
 				</div>
 
+
 				<div className="space-y-6">
 
 					{/* Tipo */}
 					<select
-						className="w-full p-3 rounded-xl border bg-gray-50"
+						className="
+							w-full p-3 rounded-xl border bg-gray-50 
+							text-black
+							md:text-gray-700
+						"
 						value={tipo}
 						onChange={(e) => setTipo(e.target.value as "gasto" | "ingreso")}
 					>
@@ -110,7 +129,11 @@ export default function AddMovimiento() {
 
 					{/* Categoría */}
 					<select
-						className="w-full p-3 rounded-xl border bg-gray-50"
+						className="
+							w-full p-3 rounded-xl border bg-gray-50 
+							text-black
+							md:text-gray-700
+						"
 						value={categoria}
 						onChange={(e) => setCategoria(e.target.value)}
 					>
@@ -124,7 +147,10 @@ export default function AddMovimiento() {
 
 					{/* Concepto */}
 					<input
-						className="w-full p-3 rounded-xl border bg-gray-50"
+						className="
+							w-full p-3 rounded-xl border bg-gray-50 
+							text-black           /* 👉 texto negro */
+						"
 						placeholder="Concepto"
 						value={concepto}
 						onChange={(e) => setConcepto(e.target.value)}
@@ -132,7 +158,10 @@ export default function AddMovimiento() {
 
 					{/* Cantidad */}
 					<input
-						className="w-full p-3 rounded-xl border bg-gray-50"
+						className="
+							w-full p-3 rounded-xl border bg-gray-50 
+							text-black           /* 👉 texto negro */
+						"
 						type="number"
 						placeholder="Cantidad"
 						value={cantidad}

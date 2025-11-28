@@ -152,7 +152,7 @@ export default function EditMovimiento() {
 
 					{/* Tipo */}
 					<select
-						className="w-full p-3 rounded-xl border bg-gray-50"
+						className="w-full p-3 rounded-xl border bg-gray-50 text-black md:text-gray-700"
 						value={mov.tipo}
 						onChange={(e) => {
 							const nuevoTipo = e.target.value as "gasto" | "ingreso";
@@ -166,7 +166,7 @@ export default function EditMovimiento() {
 
 					{/* Categoría */}
 					<select
-						className="w-full p-3 rounded-xl border bg-gray-50"
+						className="w-full p-3 rounded-xl border bg-gray-50 text-black md:text-gray-700"
 						value={mov.categoria}
 						onChange={(e) => setMov({ ...mov, categoria: e.target.value })}
 					>
@@ -179,14 +179,14 @@ export default function EditMovimiento() {
 
 					{/* Concepto */}
 					<input
-						className="w-full p-3 rounded-xl border bg-gray-50"
+						className="w-full p-3 rounded-xl border bg-gray-50 text-black"
 						value={mov.concepto}
 						onChange={(e) => setMov({ ...mov, concepto: e.target.value })}
 					/>
 
 					{/* Cantidad */}
 					<input
-						className="w-full p-3 rounded-xl border bg-gray-50"
+						className="w-full p-3 rounded-xl border bg-gray-50 text-black"
 						type="number"
 						value={mov.cantidad}
 						onChange={(e) => setMov({ ...mov, cantidad: Number(e.target.value) })}
@@ -194,7 +194,7 @@ export default function EditMovimiento() {
 
 					{/* Mes */}
 					<select
-						className="w-full p-3 rounded-xl border bg-gray-50"
+						className="w-full p-3 rounded-xl border bg-gray-50 text-black md:text-gray-700"
 						value={mov.mes}
 						onChange={(e) => setMov({ ...mov, mes: e.target.value })}
 					>
@@ -207,7 +207,7 @@ export default function EditMovimiento() {
 
 					{/* Año */}
 					<select
-						className="w-full p-3 rounded-xl border bg-gray-50"
+						className="w-full p-3 rounded-xl border bg-gray-50 text-black md:text-gray-700"
 						value={mov.año}
 						onChange={(e) => setMov({ ...mov, año: Number(e.target.value) })}
 					>
