@@ -51,13 +51,11 @@ export default function ModalCrearCuenta({
 
 		setLoading(true);
 
-		// 1) Crear el usuario
+		// 1) Crear usuario
 		const { data, error: signUpError } = await supabase.auth.signUp({
 			email,
 			password
 		});
-
-		setLoading(false);
 
 		if (signUpError) {
 			setAlertType("error");
@@ -65,21 +63,31 @@ export default function ModalCrearCuenta({
 			return;
 		}
 
-		// 2) Usar el user devuelto por signUp
-		const userId = data.user?.id;
+		// 2) Obtener el usuario
+		const user = data.user ?? data.session?.user;
 
-		if (!userId) {
+		if (!user) {
 			setAlertType("error");
-			setAlertMsg("No se pudo crear el perfil (sin user ID).");
+			setAlertMsg("Confirma tu correo para activar la cuenta.");
 			return;
 		}
 
+		const userId = user.id;
+
 		// 3) Crear perfil
-		await supabase.from("profiles").upsert({
-			id: userId,
-			nombre,
-			avatar_url: ""
-		});
+		const { error: profileError } = await supabase
+			.from("profiles")
+			.upsert({
+				id: userId,
+				nombre,
+				avatar_url: ""
+			});
+
+		if (profileError) {
+			console.log("ERROR PROFILE:", profileError);
+		}
+
+
 
 		setAlertType("success");
 		setAlertMsg("Cuenta creada. Revisa tu correo para confirmar.");
