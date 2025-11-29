@@ -36,7 +36,11 @@ export default function HeaderMobile({
 			{/* PERFIL + BIENVENIDA */}
 			{perfil && (
 				<div className="flex items-center gap-1 mb-2 mt-2">
-					<Link to="/perfil" className="p-1 rounded-lg hover:bg-[#0097A710] transition">
+					<Link
+						to="/perfil"
+						className="p-1 rounded-lg hover:bg-[#0097A710] transition"
+						style={{ WebkitTapHighlightColor: "transparent" }}
+					>
 						<UserCircleIcon className="w-6 h-6 text-[#006C7A]" />
 					</Link>
 
@@ -48,13 +52,13 @@ export default function HeaderMobile({
 
 			{/* FILA: BOTÓN MENÚ + EVOLUCIÓN */}
 			{!menuOpen && (
-				<div className=" flex justify-between items-center px-6 mt-2 mb-1 gap-6">
-
+				<div className="flex justify-between items-center px-6 mt-2 mb-1 gap-6">
 
 					{/* BOTÓN MENÚ */}
 					<button
 						onClick={() => setMenuOpen(true)}
 						className="bg-[#0097A7] text-white px-6 py-3 rounded-xl shadow hover:bg-[#007f90] font-semibold"
+						style={{ WebkitTapHighlightColor: "transparent" }}
 					>
 						☰ Menú
 					</button>
@@ -62,10 +66,12 @@ export default function HeaderMobile({
 					{/* BOTÓN EVOLUCIÓN */}
 					<button
 						onClick={() => navigate("/evolucion")}
-						className="py-3 px-4 text-[#006C7A] font-semibold hover:bg-gray-100 rounded-lg transition"
+						className="text-center py-3 px-4 text-[#006C7A] font-semibold bg-white border border-gray-200 rounded-lg hover:bg-gray-100 transition"
+						style={{ WebkitTapHighlightColor: "transparent" }}
 					>
 						📈 Evolución
 					</button>
+
 
 				</div>
 			)}
@@ -75,6 +81,7 @@ export default function HeaderMobile({
 				<button
 					onClick={() => setMenuOpen(false)}
 					className="bg-[#0097A7] text-white px-6 py-3 rounded-xl shadow hover:bg-[#007f90] font-semibold mt-4 mb-3"
+					style={{ WebkitTapHighlightColor: "transparent" }}
 				>
 					☰ Menú
 				</button>
@@ -82,8 +89,13 @@ export default function HeaderMobile({
 
 			{/* MENÚ DESPLEGADO */}
 			{menuOpen && (
-				<div className="w-full bg-white border border-gray-200 rounded-xl p-3 mt-2">
-
+				<div
+					className="w-full border border-gray-200 rounded-xl p-3 mt-2 bg-white"
+					style={{
+						WebkitTapHighlightColor: "transparent",
+						backgroundColor: "white"
+					}}
+				>
 					<div className="flex flex-col divide-y divide-gray-200">
 
 						<button
@@ -91,7 +103,8 @@ export default function HeaderMobile({
 								navigate("/add");
 								setMenuOpen(false);
 							}}
-							className="text-center py-3 px-2 text-[#006C7A] font-semibold hover:bg-gray-100 transition"
+							className="text-center py-3 px-2 text-[#006C7A] font-semibold hover:bg-gray-100 transition bg-white"
+							style={{ WebkitTapHighlightColor: "transparent" }}
 						>
 							+ Añadir movimiento
 						</button>
@@ -101,7 +114,8 @@ export default function HeaderMobile({
 								onShowFav();
 								setMenuOpen(false);
 							}}
-							className="text-center py-3 px-2 text-[#006C7A] font-semibold hover:bg-gray-100 transition"
+							className="text-center py-3 px-2 text-[#006C7A] font-semibold hover:bg-gray-100 transition bg-white"
+							style={{ WebkitTapHighlightColor: "transparent" }}
 						>
 							⭐ Favoritos
 						</button>
@@ -111,7 +125,8 @@ export default function HeaderMobile({
 								onLimpiarMes();
 								setMenuOpen(false);
 							}}
-							className="text-center py-3 px-2 text-red-600 font-semibold hover:bg-red-50 transition"
+							className="text-center py-3 px-2 text-red-600 font-semibold hover:bg-red-50 transition bg-white"
+							style={{ WebkitTapHighlightColor: "transparent" }}
 						>
 							🧹 Limpiar mes
 						</button>
@@ -121,7 +136,8 @@ export default function HeaderMobile({
 								navigate("/categorias");
 								setMenuOpen(false);
 							}}
-							className="text-center py-3 px-2 text-[#006C7A] font-semibold hover:bg-gray-100 transition"
+							className="text-center py-3 px-2 text-[#006C7A] font-semibold hover:bg-gray-100 transition bg-white"
+							style={{ WebkitTapHighlightColor: "transparent" }}
 						>
 							📂 Categorías
 						</button>
@@ -135,20 +151,20 @@ export default function HeaderMobile({
 								navigate("/login", { replace: true });
 								window.location.reload();
 							}}
-							className="text-center py-3 px-2 text-red-600 font-semibold hover:bg-red-50 transition"
+							className="text-center py-3 px-2 text-red-600 font-semibold hover:bg-red-50 transition bg-white"
+							style={{ WebkitTapHighlightColor: "transparent" }}
 						>
 							Cerrar sesión
 						</button>
 
 					</div>
-
 				</div>
 			)}
 
-			{/* SELECTOR MES / AÑO (solo si el menú está cerrado) */}
+			{/* SELECTOR MES / AÑO */}
 			{!menuOpen && (
 				<div className="mt-4 flex justify-center w-full">
-					<div className="max-w-[280px] ">
+					<div className="max-w-[280px]">
 						<MesAnoSelector
 							mes={mes}
 							año={año}
@@ -157,7 +173,6 @@ export default function HeaderMobile({
 						/>
 					</div>
 				</div>
-
 			)}
 
 		</div>
