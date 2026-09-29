@@ -54,8 +54,8 @@ export default function DynamicCategoryBox({
 					<div className="flex min-w-0 items-center gap-3">
 						<div
 							className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${esGasto
-									? "bg-rose-50 text-rose-500"
-									: "bg-emerald-50 text-emerald-600"
+								? "bg-rose-50 text-rose-500"
+								: "bg-emerald-50 text-emerald-600"
 								}`}
 						>
 							{esGasto ? (
@@ -79,8 +79,8 @@ export default function DynamicCategoryBox({
 					<div className="shrink-0 text-right">
 						<p
 							className={`text-lg font-bold ${esGasto
-									? "text-slate-900"
-									: "text-emerald-600"
+								? "text-slate-900"
+								: "text-emerald-600"
 								}`}
 						>
 							{esGasto ? "−" : "+"}
@@ -163,8 +163,8 @@ export default function DynamicCategoryBox({
 
 									<div
 										className={`h-2 w-2 shrink-0 rounded-full ${esGasto
-												? "bg-rose-400"
-												: "bg-emerald-400"
+											? "bg-rose-400"
+											: "bg-emerald-400"
 											}`}
 									/>
 
@@ -178,8 +178,8 @@ export default function DynamicCategoryBox({
 
 									<span
 										className={`text-sm font-semibold ${esGasto
-												? "text-rose-500"
-												: "text-emerald-600"
+											? "text-rose-500"
+											: "text-emerald-600"
 											}`}
 									>
 										{esGasto ? "−" : "+"}
@@ -203,7 +203,7 @@ export default function DynamicCategoryBox({
 
 			</div>
 
-			{/* FOOTER */}
+			{/* FOOTER 
 			<div className="border-t border-slate-100 bg-slate-50/50 px-5 py-3">
 
 				<div className="flex items-center justify-between">
@@ -224,7 +224,7 @@ export default function DynamicCategoryBox({
 
 				</div>
 
-			</div>
+			</div>*/}
 
 		</article>
 	);
