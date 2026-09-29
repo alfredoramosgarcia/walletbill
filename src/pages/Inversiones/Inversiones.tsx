@@ -2,7 +2,6 @@ import {
 	useEffect,
 	useMemo,
 	useState,
-	type FormEvent,
 } from "react";
 
 import {
@@ -18,11 +17,14 @@ import {
 import { supabase } from "../../supabase/client";
 import { useAuth } from "../../hooks/useAuth";
 
+import ModalNuevaInversion from "./components/ModalNuevaInversion";
+import ModalRegistroInversion from "./components/ModalRegistroInversion";
+
 /* ========================================================== */
 /* TIPOS                                                      */
 /* ========================================================== */
 
-type Inversion = {
+export type Inversion = {
 	id: string;
 	user_id: string;
 	nombre: string;
@@ -33,7 +35,7 @@ type Inversion = {
 	created_at: string;
 };
 
-type MovimientoInversion = {
+export type MovimientoInversion = {
 	id: string;
 	inversion_id: string;
 	user_id: string;
@@ -45,35 +47,9 @@ type MovimientoInversion = {
 	created_at: string;
 };
 
-type NuevaInversionForm = {
-	nombre: string;
-	tipo: string;
-	simbolo: string;
-	moneda: string;
-	descripcion: string;
-};
-
-type NuevoRegistroForm = {
-	fecha: string;
-	valor: string;
-	aportacion: string;
-	retirada: string;
-	notas: string;
-};
-
 /* ========================================================== */
 /* HELPERS                                                    */
 /* ========================================================== */
-
-function fechaHoy() {
-	const hoy = new Date();
-
-	const year = hoy.getFullYear();
-	const month = String(hoy.getMonth() + 1).padStart(2, "0");
-	const day = String(hoy.getDate()).padStart(2, "0");
-
-	return `${year}-${month}-${day}`;
-}
 
 function dinero(
 	value: number,
@@ -94,13 +70,17 @@ function porcentaje(value: number) {
 }
 
 function fechaCorta(fecha: string) {
-	const [year, month, day] = fecha.split("-");
+	const [year, month, day] =
+		fecha.split("-");
 
-	return new Intl.DateTimeFormat("es-ES", {
-		day: "2-digit",
-		month: "short",
-		year: "numeric",
-	}).format(
+	return new Intl.DateTimeFormat(
+		"es-ES",
+		{
+			day: "2-digit",
+			month: "short",
+			year: "numeric",
+		}
+	).format(
 		new Date(
 			Number(year),
 			Number(month) - 1,
@@ -110,12 +90,16 @@ function fechaCorta(fecha: string) {
 }
 
 function mesCorto(fecha: string) {
-	const [year, month, day] = fecha.split("-");
+	const [year, month, day] =
+		fecha.split("-");
 
-	return new Intl.DateTimeFormat("es-ES", {
-		month: "short",
-		year: "2-digit",
-	}).format(
+	return new Intl.DateTimeFormat(
+		"es-ES",
+		{
+			month: "short",
+			year: "2-digit",
+		}
+	).format(
 		new Date(
 			Number(year),
 			Number(month) - 1,
@@ -123,32 +107,6 @@ function mesCorto(fecha: string) {
 		)
 	);
 }
-
-function numero(value: string) {
-	const parsed = Number(
-		value.replace(",", ".")
-	);
-
-	return Number.isFinite(parsed)
-		? parsed
-		: 0;
-}
-
-const inversionInicial: NuevaInversionForm = {
-	nombre: "",
-	tipo: "bolsa",
-	simbolo: "",
-	moneda: "EUR",
-	descripcion: "",
-};
-
-const registroInicial: NuevoRegistroForm = {
-	fecha: fechaHoy(),
-	valor: "",
-	aportacion: "",
-	retirada: "",
-	notas: "",
-};
 
 /* ========================================================== */
 /* COMPONENTE                                                 */
@@ -160,39 +118,34 @@ export default function Inversiones() {
 	const [inversiones, setInversiones] =
 		useState<Inversion[]>([]);
 
-	const [inversionSeleccionada, setInversionSeleccionada] =
-		useState("");
+	const [
+		inversionSeleccionada,
+		setInversionSeleccionada,
+	] = useState("");
 
 	const [movimientos, setMovimientos] =
 		useState<MovimientoInversion[]>([]);
 
-	const [loading, setLoading] = useState(true);
-	const [loadingMovimientos, setLoadingMovimientos] =
-		useState(false);
+	const [loading, setLoading] =
+		useState(true);
 
-	const [showNuevaInversion, setShowNuevaInversion] =
-		useState(false);
+	const [
+		loadingMovimientos,
+		setLoadingMovimientos,
+	] = useState(false);
 
-	const [showNuevoRegistro, setShowNuevoRegistro] =
-		useState(false);
+	const [
+		showNuevaInversion,
+		setShowNuevaInversion,
+	] = useState(false);
 
-	const [guardandoInversion, setGuardandoInversion] =
-		useState(false);
+	const [
+		showNuevoRegistro,
+		setShowNuevoRegistro,
+	] = useState(false);
 
-	const [guardandoRegistro, setGuardandoRegistro] =
-		useState(false);
-
-	const [error, setError] = useState("");
-
-	const [formInversion, setFormInversion] =
-		useState<NuevaInversionForm>(
-			inversionInicial
-		);
-
-	const [formRegistro, setFormRegistro] =
-		useState<NuevoRegistroForm>(
-			registroInicial
-		);
+	const [error, setError] =
+		useState("");
 
 	/* ====================================================== */
 	/* CARGAR INVERSIONES                                     */
@@ -201,27 +154,32 @@ export default function Inversiones() {
 	useEffect(() => {
 		if (!user) return;
 
-		cargarInversiones();
+		void cargarInversiones();
 	}, [user]);
 
-	async function cargarInversiones() {
+	async function cargarInversiones(
+		seleccionarId?: string
+	) {
 		if (!user) return;
 
 		setLoading(true);
 
-		const { data, error } = await supabase
-			.from("inversiones")
-			.select("*")
-			.eq("user_id", user.id)
-			.order("created_at", {
-				ascending: true,
-			});
+		const { data, error } =
+			await supabase
+				.from("inversiones")
+				.select("*")
+				.eq("user_id", user.id)
+				.order("created_at", {
+					ascending: true,
+				});
 
 		if (error) {
 			console.error(error);
+
 			setError(
 				"No se han podido cargar las inversiones."
 			);
+
 			setLoading(false);
 			return;
 		}
@@ -231,21 +189,33 @@ export default function Inversiones() {
 
 		setInversiones(lista);
 
-		setInversionSeleccionada(
-			(actual) => {
-				if (
-					actual &&
-					lista.some(
-						(item) =>
-							item.id === actual
-					)
-				) {
-					return actual;
-				}
+		if (
+			seleccionarId &&
+			lista.some(
+				(item) =>
+					item.id === seleccionarId
+			)
+		) {
+			setInversionSeleccionada(
+				seleccionarId
+			);
+		} else {
+			setInversionSeleccionada(
+				(actual) => {
+					if (
+						actual &&
+						lista.some(
+							(item) =>
+								item.id === actual
+						)
+					) {
+						return actual;
+					}
 
-				return lista[0]?.id ?? "";
-			}
-		);
+					return lista[0]?.id ?? "";
+				}
+			);
+		}
 
 		setLoading(false);
 	}
@@ -255,12 +225,15 @@ export default function Inversiones() {
 	/* ====================================================== */
 
 	useEffect(() => {
-		if (!user || !inversionSeleccionada) {
+		if (
+			!user ||
+			!inversionSeleccionada
+		) {
 			setMovimientos([]);
 			return;
 		}
 
-		cargarMovimientos();
+		void cargarMovimientos();
 	}, [user, inversionSeleccionada]);
 
 	async function cargarMovimientos() {
@@ -273,23 +246,31 @@ export default function Inversiones() {
 
 		setLoadingMovimientos(true);
 
-		const { data, error } = await supabase
-			.from("inversion_movimientos")
-			.select("*")
-			.eq(
-				"inversion_id",
-				inversionSeleccionada
-			)
-			.eq("user_id", user.id)
-			.order("fecha", {
-				ascending: true,
-			});
+		const { data, error } =
+			await supabase
+				.from(
+					"inversion_movimientos"
+				)
+				.select("*")
+				.eq(
+					"inversion_id",
+					inversionSeleccionada
+				)
+				.eq(
+					"user_id",
+					user.id
+				)
+				.order("fecha", {
+					ascending: true,
+				});
 
 		if (error) {
 			console.error(error);
+
 			setError(
 				"No se ha podido cargar el histórico."
 			);
+
 			setLoadingMovimientos(false);
 			return;
 		}
@@ -303,7 +284,7 @@ export default function Inversiones() {
 	}
 
 	/* ====================================================== */
-	/* DATOS CALCULADOS                                       */
+	/* INVERSIÓN ACTUAL                                       */
 	/* ====================================================== */
 
 	const inversionActual = useMemo(
@@ -318,6 +299,10 @@ export default function Inversiones() {
 			inversionSeleccionada,
 		]
 	);
+
+	/* ====================================================== */
+	/* RESUMEN                                                */
+	/* ====================================================== */
 
 	const resumen = useMemo(() => {
 		const totalAportado =
@@ -413,191 +398,6 @@ export default function Inversiones() {
 	}, [movimientos]);
 
 	/* ====================================================== */
-	/* CREAR INVERSIÓN                                        */
-	/* ====================================================== */
-
-	async function crearInversion(
-		e: FormEvent
-	) {
-		e.preventDefault();
-
-		if (!user) return;
-
-		setError("");
-
-		if (!formInversion.nombre.trim()) {
-			setError(
-				"Introduce un nombre para la inversión."
-			);
-			return;
-		}
-
-		setGuardandoInversion(true);
-
-		try {
-			const { data, error } =
-				await supabase
-					.from("inversiones")
-					.insert({
-						user_id: user.id,
-
-						nombre:
-							formInversion.nombre.trim(),
-
-						tipo:
-							formInversion.tipo,
-
-						simbolo:
-							formInversion.simbolo.trim() ||
-							null,
-
-						moneda:
-							formInversion.moneda,
-
-						descripcion:
-							formInversion.descripcion.trim() ||
-							null,
-					})
-					.select()
-					.single();
-
-			if (error) {
-				throw error;
-			}
-
-			setFormInversion(
-				inversionInicial
-			);
-
-			setShowNuevaInversion(false);
-
-			await cargarInversiones();
-
-			if (data?.id) {
-				setInversionSeleccionada(
-					data.id
-				);
-			}
-		} catch (error) {
-			console.error(error);
-
-			setError(
-				"No se ha podido crear la inversión."
-			);
-		} finally {
-			setGuardandoInversion(false);
-		}
-	}
-
-	/* ====================================================== */
-	/* NUEVO REGISTRO                                         */
-	/* ====================================================== */
-
-	async function crearRegistro(
-		e: FormEvent
-	) {
-		e.preventDefault();
-
-		if (
-			!user ||
-			!inversionSeleccionada
-		) {
-			return;
-		}
-
-		setError("");
-
-		const valorActual = numero(
-			formRegistro.valor
-		);
-
-		const aportacion = numero(
-			formRegistro.aportacion
-		);
-
-		const retirada = numero(
-			formRegistro.retirada
-		);
-
-		if (!formRegistro.fecha) {
-			setError(
-				"Selecciona una fecha."
-			);
-			return;
-		}
-
-		if (
-			formRegistro.valor.trim() === ""
-		) {
-			setError(
-				"Introduce el valor actual de la inversión."
-			);
-			return;
-		}
-
-		if (
-			valorActual < 0 ||
-			aportacion < 0 ||
-			retirada < 0
-		) {
-			setError(
-				"Los importes no pueden ser negativos."
-			);
-			return;
-		}
-
-		setGuardandoRegistro(true);
-
-		try {
-			const { error } =
-				await supabase
-					.from(
-						"inversion_movimientos"
-					)
-					.insert({
-						inversion_id:
-							inversionSeleccionada,
-
-						user_id: user.id,
-
-						fecha:
-							formRegistro.fecha,
-
-						valor: valorActual,
-
-						aportacion,
-
-						retirada,
-
-						notas:
-							formRegistro.notas.trim() ||
-							null,
-					});
-
-			if (error) {
-				throw error;
-			}
-
-			setFormRegistro({
-				...registroInicial,
-				fecha: fechaHoy(),
-			});
-
-			setShowNuevoRegistro(false);
-
-			await cargarMovimientos();
-		} catch (error) {
-			console.error(error);
-
-			setError(
-				"No se ha podido guardar el registro."
-			);
-		} finally {
-			setGuardandoRegistro(false);
-		}
-	}
-
-	/* ====================================================== */
 	/* ELIMINAR REGISTRO                                      */
 	/* ====================================================== */
 
@@ -606,17 +406,24 @@ export default function Inversiones() {
 	) {
 		if (!user) return;
 
-		const confirmar = window.confirm(
-			"¿Eliminar este registro del histórico?"
-		);
+		const confirmar =
+			window.confirm(
+				"¿Eliminar este registro del histórico?"
+			);
 
 		if (!confirmar) return;
 
-		const { error } = await supabase
-			.from("inversion_movimientos")
-			.delete()
-			.eq("id", id)
-			.eq("user_id", user.id);
+		const { error } =
+			await supabase
+				.from(
+					"inversion_movimientos"
+				)
+				.delete()
+				.eq("id", id)
+				.eq(
+					"user_id",
+					user.id
+				);
 
 		if (error) {
 			console.error(error);
@@ -643,20 +450,25 @@ export default function Inversiones() {
 			return;
 		}
 
-		const confirmar = window.confirm(
-			`¿Eliminar "${inversionActual.nombre}" y todo su histórico?`
-		);
+		const confirmar =
+			window.confirm(
+				`¿Eliminar "${inversionActual.nombre}" y todo su histórico?`
+			);
 
 		if (!confirmar) return;
 
-		const { error } = await supabase
-			.from("inversiones")
-			.delete()
-			.eq(
-				"id",
-				inversionActual.id
-			)
-			.eq("user_id", user.id);
+		const { error } =
+			await supabase
+				.from("inversiones")
+				.delete()
+				.eq(
+					"id",
+					inversionActual.id
+				)
+				.eq(
+					"user_id",
+					user.id
+				);
 
 		if (error) {
 			console.error(error);
@@ -717,8 +529,9 @@ export default function Inversiones() {
 					</h1>
 
 					<p className="mt-2 text-sm text-slate-500">
-						Controla la evolución de tus activos,
-						aportaciones y ganancias.
+						Controla la evolución de tus
+						activos, aportaciones y
+						ganancias.
 					</p>
 				</div>
 
@@ -741,10 +554,12 @@ export default function Inversiones() {
 									)
 								}
 								className="
-									h-12 w-full rounded-xl
+									h-12 w-full
+									rounded-xl
 									border border-slate-200
 									bg-white px-4
-									font-semibold text-slate-700
+									font-semibold
+									text-slate-700
 									outline-none
 									transition
 									focus:border-[#008F8C]
@@ -765,6 +580,7 @@ export default function Inversiones() {
 											{
 												inversion.nombre
 											}
+
 											{inversion.simbolo
 												? ` · ${inversion.simbolo}`
 												: ""}
@@ -785,10 +601,11 @@ export default function Inversiones() {
 							);
 						}}
 						className="
-							self-end
-							rounded-xl px-5 py-3.5
-							text-sm font-bold text-white
-							shadow-sm transition
+							self-end rounded-xl
+							px-5 py-3.5
+							text-sm font-bold
+							text-white shadow-sm
+							transition
 							hover:-translate-y-0.5
 							hover:shadow-md
 						"
@@ -840,18 +657,20 @@ export default function Inversiones() {
 					</h2>
 
 					<p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
-						Puedes registrar acciones, fondos,
-						criptomonedas, inmuebles o cualquier
-						otro activo que quieras controlar.
+						Puedes registrar acciones,
+						fondos, criptomonedas,
+						inmuebles o cualquier otro
+						activo que quieras controlar.
 					</p>
 
 					<button
 						type="button"
-						onClick={() =>
+						onClick={() => {
+							setError("");
 							setShowNuevaInversion(
 								true
-							)
-						}
+							);
+						}}
 						className="mt-6 rounded-xl bg-[#006C7A] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#005964]"
 					>
 						Crear mi primera inversión
@@ -862,6 +681,7 @@ export default function Inversiones() {
 			) : inversionActual ? (
 
 				<>
+
 					{/* ========================================== */}
 					{/* INFO ACTIVO                                */}
 					{/* ========================================== */}
@@ -877,6 +697,7 @@ export default function Inversiones() {
 							</div>
 
 							<div>
+
 								<div className="flex flex-wrap items-center gap-2">
 
 									<h2 className="font-extrabold text-slate-800">
@@ -904,6 +725,7 @@ export default function Inversiones() {
 										inversionActual.moneda
 									}
 								</p>
+
 							</div>
 
 						</div>
@@ -914,6 +736,7 @@ export default function Inversiones() {
 								type="button"
 								onClick={() => {
 									setError("");
+
 									setShowNuevoRegistro(
 										true
 									);
@@ -964,22 +787,28 @@ export default function Inversiones() {
 
 						<Kpi
 							label="Ganancia"
-							value={`${resumen.ganancia >= 0 ? "+" : ""}${dinero(
-								resumen.ganancia,
-								inversionActual.moneda
-							)}`}
+							value={`${resumen.ganancia >= 0
+								? "+"
+								: ""
+								}${dinero(
+									resumen.ganancia,
+									inversionActual.moneda
+								)}`}
 							description="Resultado acumulado"
 							positive={
-								resumen.ganancia >=
-								0
+								resumen.ganancia >= 0
 							}
 						/>
 
 						<Kpi
 							label="Rentabilidad"
-							value={`${resumen.rentabilidad >= 0 ? "+" : ""}${porcentaje(
-								resumen.rentabilidad
-							)} %`}
+							value={`${resumen.rentabilidad >=
+								0
+								? "+"
+								: ""
+								}${porcentaje(
+									resumen.rentabilidad
+								)} %`}
 							description="Rentabilidad simple"
 							positive={
 								resumen.rentabilidad >=
@@ -1008,7 +837,6 @@ export default function Inversiones() {
 							</div>
 
 							<div className="flex flex-wrap gap-4 text-xs font-semibold text-slate-400">
-
 								<span>
 									● Valor
 								</span>
@@ -1016,7 +844,6 @@ export default function Inversiones() {
 								<span>
 									○ Capital neto
 								</span>
-
 							</div>
 
 						</div>
@@ -1027,7 +854,8 @@ export default function Inversiones() {
 								Cargando histórico...
 							</div>
 
-						) : datosGrafica.length === 0 ? (
+						) : datosGrafica.length ===
+							0 ? (
 
 							<div className="flex h-[320px] flex-col items-center justify-center rounded-2xl bg-slate-50 text-center">
 
@@ -1036,8 +864,9 @@ export default function Inversiones() {
 								</p>
 
 								<p className="mt-1 text-sm text-slate-400">
-									Añade la primera valoración
-									para comenzar la gráfica.
+									Añade la primera
+									valoración para comenzar
+									la gráfica.
 								</p>
 
 							</div>
@@ -1061,6 +890,7 @@ export default function Inversiones() {
 											bottom: 0,
 										}}
 									>
+
 										<defs>
 											<linearGradient
 												id="walletInvestmentGradient"
@@ -1233,11 +1063,13 @@ export default function Inversiones() {
 
 							<button
 								type="button"
-								onClick={() =>
+								onClick={() => {
+									setError("");
+
 									setShowNuevoRegistro(
 										true
-									)
-								}
+									);
+								}}
 								className="rounded-xl border border-[#008F8C]/20 bg-[#EAF6F3] px-4 py-2.5 text-sm font-bold text-[#006C7A] transition hover:bg-[#DDF1ED]"
 							>
 								+ Registro
@@ -1245,7 +1077,8 @@ export default function Inversiones() {
 
 						</div>
 
-						{movimientos.length === 0 ? (
+						{movimientos.length ===
+							0 ? (
 
 							<div className="px-6 py-14 text-center">
 
@@ -1255,7 +1088,8 @@ export default function Inversiones() {
 
 								<p className="mt-1 text-sm text-slate-400">
 									Registra una valoración
-									para comenzar el histórico.
+									para comenzar el
+									histórico.
 								</p>
 
 							</div>
@@ -1267,7 +1101,6 @@ export default function Inversiones() {
 								<table className="w-full min-w-[760px]">
 
 									<thead className="bg-slate-50">
-
 										<tr className="text-left text-[11px] font-bold uppercase tracking-wider text-slate-400">
 
 											<th className="px-6 py-3">
@@ -1295,7 +1128,6 @@ export default function Inversiones() {
 											</th>
 
 										</tr>
-
 									</thead>
 
 									<tbody className="divide-y divide-slate-100">
@@ -1399,380 +1231,49 @@ export default function Inversiones() {
 			) : null}
 
 			{/* ================================================== */}
-			{/* MODAL NUEVA INVERSIÓN                              */}
+			{/* MODALES EXTERNOS                                   */}
 			{/* ================================================== */}
 
-			{showNuevaInversion && (
+			<ModalNuevaInversion
+				open={showNuevaInversion}
+				onClose={() =>
+					setShowNuevaInversion(false)
+				}
+				onCreated={async (id) => {
+					await cargarInversiones(
+						id
+					);
+				}}
+				onError={setError}
+			/>
 
-				<Modal
-					title="Nueva inversión"
-					subtitle="Añade cualquier activo que quieras controlar."
-					onClose={() => {
-						if (
-							!guardandoInversion
-						) {
-							setShowNuevaInversion(
-								false
-							);
-						}
+			{inversionActual && (
+				<ModalRegistroInversion
+					open={
+						showNuevoRegistro
+					}
+					inversion={
+						inversionActual
+					}
+					onClose={() =>
+						setShowNuevoRegistro(
+							false
+						)
+					}
+					onCreated={async () => {
+						await cargarMovimientos();
 					}}
-				>
-
-					<form
-						onSubmit={
-							crearInversion
-						}
-					>
-
-						<Field
-							label="Nombre"
-							placeholder="Ej. Apple, Bitcoin, Piso Cádiz..."
-							value={
-								formInversion.nombre
-							}
-							onChange={(value) =>
-								setFormInversion({
-									...formInversion,
-									nombre: value,
-								})
-							}
-						/>
-
-						<div className="mt-4 grid gap-4 sm:grid-cols-2">
-
-							<div>
-								<label className="mb-2 block text-sm font-bold text-slate-700">
-									Tipo
-								</label>
-
-								<select
-									value={
-										formInversion.tipo
-									}
-									onChange={(e) =>
-										setFormInversion({
-											...formInversion,
-											tipo: e
-												.target
-												.value,
-										})
-									}
-									className={inputClass}
-								>
-									<option value="bolsa">
-										Bolsa / Acción
-									</option>
-
-									<option value="etf">
-										ETF
-									</option>
-
-									<option value="fondo">
-										Fondo
-									</option>
-
-									<option value="cripto">
-										Criptomoneda
-									</option>
-
-									<option value="inmueble">
-										Inmueble
-									</option>
-
-									<option value="deposito">
-										Depósito
-									</option>
-
-									<option value="empresa">
-										Empresa
-									</option>
-
-									<option value="otro">
-										Otro
-									</option>
-								</select>
-							</div>
-
-							<div>
-								<label className="mb-2 block text-sm font-bold text-slate-700">
-									Moneda
-								</label>
-
-								<select
-									value={
-										formInversion.moneda
-									}
-									onChange={(e) =>
-										setFormInversion({
-											...formInversion,
-											moneda: e
-												.target
-												.value,
-										})
-									}
-									className={inputClass}
-								>
-									<option value="EUR">
-										EUR · €
-									</option>
-
-									<option value="USD">
-										USD · $
-									</option>
-
-									<option value="GBP">
-										GBP · £
-									</option>
-								</select>
-							</div>
-
-						</div>
-
-						<div className="mt-4">
-
-							<Field
-								label="Símbolo / ticker"
-								placeholder="Opcional · Ej. AAPL"
-								value={
-									formInversion.simbolo
-								}
-								onChange={(value) =>
-									setFormInversion({
-										...formInversion,
-										simbolo:
-											value.toUpperCase(),
-									})
-								}
-							/>
-
-						</div>
-
-						<div className="mt-4">
-
-							<label className="mb-2 block text-sm font-bold text-slate-700">
-								Descripción
-							</label>
-
-							<textarea
-								value={
-									formInversion.descripcion
-								}
-								onChange={(e) =>
-									setFormInversion({
-										...formInversion,
-										descripcion:
-											e.target
-												.value,
-									})
-								}
-								placeholder="Opcional"
-								rows={3}
-								className={inputClass}
-							/>
-
-						</div>
-
-						<ModalActions
-							loading={
-								guardandoInversion
-							}
-							label="Crear inversión"
-							loadingLabel="Creando..."
-							onCancel={() =>
-								setShowNuevaInversion(
-									false
-								)
-							}
-						/>
-
-					</form>
-
-				</Modal>
+					onError={setError}
+				/>
 			)}
-
-			{/* ================================================== */}
-			{/* MODAL REGISTRO                                     */}
-			{/* ================================================== */}
-
-			{showNuevoRegistro &&
-				inversionActual && (
-
-					<Modal
-						title="Añadir registro"
-						subtitle={`${inversionActual.nombre}${inversionActual.simbolo ? ` · ${inversionActual.simbolo}` : ""}`}
-						onClose={() => {
-							if (
-								!guardandoRegistro
-							) {
-								setShowNuevoRegistro(
-									false
-								);
-							}
-						}}
-					>
-
-						<form
-							onSubmit={
-								crearRegistro
-							}
-						>
-
-							<div>
-
-								<label className="mb-2 block text-sm font-bold text-slate-700">
-									Fecha
-								</label>
-
-								<input
-									type="date"
-									value={
-										formRegistro.fecha
-									}
-									onChange={(e) =>
-										setFormRegistro({
-											...formRegistro,
-											fecha: e
-												.target
-												.value,
-										})
-									}
-									className={inputClass}
-								/>
-
-							</div>
-
-							<div className="mt-4">
-
-								<Field
-									label={`Valor actual (${inversionActual.moneda})`}
-									type="number"
-									step="0.01"
-									min="0"
-									placeholder="0,00"
-									value={
-										formRegistro.valor
-									}
-									onChange={(value) =>
-										setFormRegistro({
-											...formRegistro,
-											valor: value,
-										})
-									}
-								/>
-
-								<p className="mt-1.5 text-xs leading-5 text-slate-400">
-									Valor total que tiene
-									esta inversión en esta
-									fecha.
-								</p>
-
-							</div>
-
-							<div className="mt-4 grid gap-4 sm:grid-cols-2">
-
-								<Field
-									label="Aportación"
-									type="number"
-									step="0.01"
-									min="0"
-									placeholder="0,00"
-									value={
-										formRegistro.aportacion
-									}
-									onChange={(value) =>
-										setFormRegistro({
-											...formRegistro,
-											aportacion:
-												value,
-										})
-									}
-								/>
-
-								<Field
-									label="Retirada"
-									type="number"
-									step="0.01"
-									min="0"
-									placeholder="0,00"
-									value={
-										formRegistro.retirada
-									}
-									onChange={(value) =>
-										setFormRegistro({
-											...formRegistro,
-											retirada:
-												value,
-										})
-									}
-								/>
-
-							</div>
-
-							<div className="mt-4">
-
-								<label className="mb-2 block text-sm font-bold text-slate-700">
-									Notas
-								</label>
-
-								<textarea
-									value={
-										formRegistro.notas
-									}
-									onChange={(e) =>
-										setFormRegistro({
-											...formRegistro,
-											notas: e
-												.target
-												.value,
-										})
-									}
-									placeholder="Ej. Compra mensual, revalorización..."
-									rows={3}
-									className={inputClass}
-								/>
-
-							</div>
-
-							<ModalActions
-								loading={
-									guardandoRegistro
-								}
-								label="Guardar registro"
-								loadingLabel="Guardando..."
-								onCancel={() =>
-									setShowNuevoRegistro(
-										false
-									)
-								}
-							/>
-
-						</form>
-
-					</Modal>
-				)}
 
 		</div>
 	);
 }
 
 /* ========================================================== */
-/* COMPONENTES AUXILIARES                                     */
+/* COMPONENTES PEQUEÑOS                                       */
 /* ========================================================== */
-
-const inputClass = `
-	w-full rounded-xl
-	border border-slate-200
-	bg-slate-50
-	px-4 py-3
-	text-sm font-semibold
-	text-slate-700
-	outline-none transition
-	placeholder:text-slate-400
-	focus:border-[#008F8C]
-	focus:bg-white
-	focus:ring-2
-	focus:ring-[#008F8C]/10
-`;
 
 function Kpi({
 	label,
@@ -1822,10 +1323,10 @@ function Kpi({
 
 			<p
 				className={`mt-2 text-2xl font-extrabold ${positive === undefined
-						? "text-slate-800"
-						: positive
-							? "text-emerald-600"
-							: "text-rose-500"
+					? "text-slate-800"
+					: positive
+						? "text-emerald-600"
+						: "text-rose-500"
 					}`}
 			>
 				{value}
@@ -1856,131 +1357,6 @@ function MiniKpi({
 			<p className="mt-1 text-lg font-extrabold text-slate-800">
 				{value}
 			</p>
-
-		</div>
-	);
-}
-
-function Modal({
-	title,
-	subtitle,
-	children,
-	onClose,
-}: {
-	title: string;
-	subtitle: string;
-	children: React.ReactNode;
-	onClose: () => void;
-}) {
-	return (
-		<div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 px-4 py-6 backdrop-blur-sm">
-
-			<div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[28px] border border-white/70 bg-white shadow-2xl">
-
-				<div className="flex items-start justify-between border-b border-slate-100 bg-[#F2F9F7] px-6 py-5">
-
-					<div>
-						<h2 className="text-xl font-extrabold text-slate-900">
-							{title}
-						</h2>
-
-						<p className="mt-1 text-sm text-slate-500">
-							{subtitle}
-						</p>
-					</div>
-
-					<button
-						type="button"
-						onClick={onClose}
-						className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-xl font-bold text-slate-400 transition hover:text-slate-700"
-					>
-						×
-					</button>
-
-				</div>
-
-				<div className="p-6">
-					{children}
-				</div>
-
-			</div>
-
-		</div>
-	);
-}
-
-function Field({
-	label,
-	value,
-	onChange,
-	placeholder,
-	type = "text",
-	step,
-	min,
-}: {
-	label: string;
-	value: string;
-	onChange: (value: string) => void;
-	placeholder?: string;
-	type?: string;
-	step?: string;
-	min?: string;
-}) {
-	return (
-		<div>
-
-			<label className="mb-2 block text-sm font-bold text-slate-700">
-				{label}
-			</label>
-
-			<input
-				type={type}
-				step={step}
-				min={min}
-				value={value}
-				onChange={(e) =>
-					onChange(e.target.value)
-				}
-				placeholder={placeholder}
-				className={inputClass}
-			/>
-
-		</div>
-	);
-}
-
-function ModalActions({
-	loading,
-	label,
-	loadingLabel,
-	onCancel,
-}: {
-	loading: boolean;
-	label: string;
-	loadingLabel: string;
-	onCancel: () => void;
-}) {
-	return (
-		<div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-
-			<button
-				type="button"
-				onClick={onCancel}
-				disabled={loading}
-				className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-500 transition hover:bg-slate-50 disabled:opacity-50"
-			>
-				Cancelar
-			</button>
-
-			<button
-				type="submit"
-				disabled={loading}
-				className="rounded-xl bg-[#006C7A] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#005964] disabled:cursor-not-allowed disabled:opacity-60"
-			>
-				{loading
-					? loadingLabel
-					: label}
-			</button>
 
 		</div>
 	);
