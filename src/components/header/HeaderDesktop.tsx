@@ -1,9 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
 	BarChart3,
-	Heart,
 	LayoutDashboard,
-	LogOut,
 	Plus,
 	Settings2,
 	TrendingUp

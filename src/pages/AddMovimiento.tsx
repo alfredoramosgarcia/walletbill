@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
 	ArrowDownRight,
-	ArrowLeft,
 	ArrowUpRight,
 	Bookmark,
 	Check,

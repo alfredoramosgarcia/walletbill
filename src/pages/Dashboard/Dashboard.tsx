@@ -1,6 +1,6 @@
 // src/pages/Dashboard/Dashboard.tsx
 
-import { ArrowDownRight, ArrowUpRight, Wallet } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 
 import { useMovimientos } from "../../hooks/useMovimientos";
 import { useCategorias } from "../../hooks/useCategorias";

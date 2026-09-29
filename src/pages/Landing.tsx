@@ -2,10 +2,9 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import ModalCrearCuenta from "./ModalCrearCuenta";
 
 export default function Landing() {
-	const [showRegister, setShowRegister] = useState(false);
+	const [, setShowRegister] = useState(false);
 
 
 	return (
