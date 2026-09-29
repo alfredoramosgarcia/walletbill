@@ -321,16 +321,17 @@ export default function HeaderMobile({
 
 						<ViewButton
 							icon={
-								<TrendingUp
+								<Settings2
 									size={19}
 								/>
 							}
-							label="Inversiones"
-							active={location.pathname.startsWith(
-								"/inversiones"
-							)}
+							label="Categorías"
+							active={
+								location.pathname ===
+								"/categorias"
+							}
 							onClick={() =>
-								goTo("/inversiones")
+								goTo("/categorias")
 							}
 						/>
 
@@ -352,17 +353,16 @@ export default function HeaderMobile({
 
 						<ViewButton
 							icon={
-								<Settings2
+								<TrendingUp
 									size={19}
 								/>
 							}
-							label="Categorías"
-							active={
-								location.pathname ===
-								"/categorias"
-							}
+							label="Inversiones"
+							active={location.pathname.startsWith(
+								"/inversiones"
+							)}
 							onClick={() =>
-								goTo("/categorias")
+								goTo("/inversiones")
 							}
 						/>
 
