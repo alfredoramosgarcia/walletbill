@@ -33,7 +33,6 @@ interface Props {
 }
 
 export default function HeaderMobile({
-	perfil,
 	menuOpen: _menuOpen,
 	setMenuOpen: _setMenuOpen,
 	onShowFav,
