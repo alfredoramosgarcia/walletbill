@@ -125,22 +125,27 @@ export default function Login() {
 				<div className="mb-7 text-center">
 
 					{/* AQUÍ PODRÁS PONER TU PNG DE WALLETBILL */}
-					<div
+					{/* LOGO WALLETBILL */}
+					<button
+						type="button"
+						onClick={() => navigate("/")}
 						className="
-							mx-auto mb-4
-							flex h-16 w-16
-							items-center justify-center
-							rounded-2xl shadow-lg
-						"
-						style={{
-							background:
-								"linear-gradient(135deg, #006C7A 0%, #009B91 100%)",
-						}}
+		mx-auto mb-4
+		flex items-center justify-center
+		border-0 bg-transparent p-0
+		transition
+		hover:scale-105
+		active:scale-95
+	"
+						title="Volver al inicio"
+						aria-label="Volver al inicio"
 					>
-						<span className="text-3xl">
-							💳
-						</span>
-					</div>
+						<img
+							src="/notbackground.png"
+							alt="WalletBill"
+							className="h-20 w-20 object-contain"
+						/>
+					</button>
 
 					<h1 className="text-3xl font-extrabold tracking-tight text-slate-900">
 						Wallet

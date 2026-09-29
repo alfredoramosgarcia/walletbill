@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import ModalCrearCuenta from "./ModalCrearCuenta";
 
 export default function Landing() {
-	const [, setShowRegister] = useState(false);
-
+	const [showRegister, setShowRegister] = useState(false);
 
 	return (
 		<div className="min-h-screen bg-[#F2F9F7] text-slate-900">
@@ -86,12 +86,12 @@ export default function Landing() {
 							type="button"
 							onClick={() => setShowRegister(true)}
 							className="
-		rounded-xl px-4 py-2.5
-		text-sm font-bold text-white
-		shadow-sm transition
-		hover:-translate-y-0.5
-		hover:shadow-md
-	"
+								rounded-xl px-4 py-2.5
+								text-sm font-bold text-white
+								shadow-sm transition
+								hover:-translate-y-0.5
+								hover:shadow-md
+							"
 							style={{
 								background:
 									"linear-gradient(135deg, #006C7A 0%, #008F8C 100%)",
@@ -110,7 +110,6 @@ export default function Landing() {
 
 			<section className="relative overflow-hidden">
 
-				{/* decoraciones */}
 				<div className="pointer-events-none absolute -left-40 top-10 h-96 w-96 rounded-full bg-[#008F8C]/10 blur-3xl" />
 				<div className="pointer-events-none absolute -right-40 top-20 h-[450px] w-[450px] rounded-full bg-[#006C7A]/10 blur-3xl" />
 
@@ -143,18 +142,18 @@ export default function Landing() {
 								type="button"
 								onClick={() => setShowRegister(true)}
 								className="
-		rounded-xl px-4 py-2.5
-		text-sm font-bold text-white
-		shadow-sm transition
-		hover:-translate-y-0.5
-		hover:shadow-md
-	"
+									rounded-xl px-6 py-3.5
+									text-sm font-bold text-white
+									shadow-sm transition
+									hover:-translate-y-0.5
+									hover:shadow-md
+								"
 								style={{
 									background:
 										"linear-gradient(135deg, #006C7A 0%, #008F8C 100%)",
 								}}
 							>
-								Crear cuenta
+								Crear cuenta gratis
 							</button>
 
 							<Link
@@ -193,7 +192,7 @@ export default function Landing() {
 
 							<div className="rounded-[22px] border border-slate-200 bg-[#F8FBFA] p-5 sm:p-6">
 
-								{/* mini header */}
+								{/* MINI HEADER */}
 								<div className="mb-6 flex items-center justify-between">
 
 									<div>
@@ -212,7 +211,7 @@ export default function Landing() {
 
 								</div>
 
-								{/* balance */}
+								{/* BALANCE */}
 								<div
 									className="relative overflow-hidden rounded-2xl p-5 text-white"
 									style={{
@@ -235,7 +234,7 @@ export default function Landing() {
 									</p>
 								</div>
 
-								{/* ingresos/gastos */}
+								{/* INGRESOS / GASTOS */}
 								<div className="mt-3 grid grid-cols-2 gap-3">
 
 									<div className="rounded-2xl border border-slate-200 bg-white p-4">
@@ -260,7 +259,7 @@ export default function Landing() {
 
 								</div>
 
-								{/* gráfico fake */}
+								{/* GRÁFICO */}
 								<div className="mt-3 rounded-2xl border border-slate-200 bg-white p-4">
 
 									<div className="flex items-center justify-between">
@@ -294,7 +293,7 @@ export default function Landing() {
 							</div>
 						</div>
 
-						{/* floating card */}
+						{/* FLOATING CARD */}
 						<div className="absolute -bottom-5 -left-4 hidden rounded-2xl border border-white bg-white p-4 shadow-xl sm:block">
 
 							<p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
@@ -308,6 +307,7 @@ export default function Landing() {
 						</div>
 
 					</div>
+
 				</div>
 			</section>
 
@@ -365,7 +365,7 @@ export default function Landing() {
 			</section>
 
 			{/* ====================================================== */}
-			{/* COMO FUNCIONA                                          */}
+			{/* CÓMO FUNCIONA                                          */}
 			{/* ====================================================== */}
 
 			<section id="como-funciona">
@@ -401,7 +401,7 @@ export default function Landing() {
 
 						</div>
 
-						{/* segunda mini UI */}
+						{/* SEGUNDA MINI UI */}
 						<div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-xl shadow-[#006C7A]/5">
 
 							<div className="mb-6 flex items-center justify-between">
@@ -449,6 +449,7 @@ export default function Landing() {
 							</div>
 
 						</div>
+
 					</div>
 				</div>
 			</section>
@@ -472,6 +473,7 @@ export default function Landing() {
 							"linear-gradient(135deg, #006C7A 0%, #008F8C 100%)",
 					}}
 				>
+
 					<h2 className="text-3xl font-extrabold tracking-tight">
 						Empieza a organizar tus finanzas
 					</h2>
@@ -485,15 +487,15 @@ export default function Landing() {
 						type="button"
 						onClick={() => setShowRegister(true)}
 						className="
-		mt-7 inline-block
-		rounded-xl bg-white
-		px-6 py-3.5
-		text-sm font-bold
-		text-[#006C7A]
-		shadow-sm transition
-		hover:-translate-y-0.5
-		hover:shadow-lg
-	"
+							mt-7 inline-block
+							rounded-xl bg-white
+							px-6 py-3.5
+							text-sm font-bold
+							text-[#006C7A]
+							shadow-sm transition
+							hover:-translate-y-0.5
+							hover:shadow-lg
+						"
 					>
 						Crear cuenta
 					</button>
@@ -513,7 +515,7 @@ export default function Landing() {
 
 						<img
 							src="/notbackground.png"
-							alt=""
+							alt="WalletBill"
 							className="h-7 w-7 object-contain"
 						/>
 
@@ -531,7 +533,17 @@ export default function Landing() {
 					</p>
 
 				</div>
+
 			</footer>
+
+			{/* ====================================================== */}
+			{/* MODAL CREAR CUENTA                                     */}
+			{/* ====================================================== */}
+
+			<ModalCrearCuenta
+				show={showRegister}
+				onClose={() => setShowRegister(false)}
+			/>
 
 		</div>
 	);
