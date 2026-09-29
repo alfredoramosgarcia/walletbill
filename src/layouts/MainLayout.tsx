@@ -128,25 +128,43 @@ export default function MainLayout() {
 	/*                                RENDER                                   */
 	/* ---------------------------------------------------------------------- */
 	return (
-		<div className="min-h-screen bg-[#D9ECEA]">
-
+		<div
+			className="min-h-screen text-slate-900"
+			style={{
+				background:
+					"linear-gradient(135deg, #E7F4F2 0%, #F2F9F8 50%, #E4F2F0 100%)",
+			}}
+		>
 			{/* ALERTA GLOBAL */}
 			{alertMsg && (
-				<div className="fixed top-4 left-1/2 -translate-x-1/2 bg-[#006C7A] text-white px-6 py-3 rounded-xl shadow-lg z-[9999] animate-fadeIn">
-					{alertMsg}
+				<div className="fixed left-1/2 top-5 z-[9999] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 animate-fadeIn">
+					<div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/95 px-5 py-4 text-sm font-medium text-slate-700 shadow-xl backdrop-blur-xl">
+						<div className="h-2.5 w-2.5 shrink-0 rounded-full bg-teal-500" />
+						{alertMsg}
+					</div>
 				</div>
 			)}
 
-			{/* HEADER */}
-			<Header
-				onShowFav={() => setShowFavModal(true)}
-				onLimpiarMes={() => setConfirmOpen(true)}
-			/>
+			{/* NAVEGACIÓN GLOBAL */}
+			<div
+				className="sticky top-0 z-40 border-b border-[#CFE5E1]"
+				style={{
+					background:
+						"linear-gradient(135deg, #E3F2EF 0%, #F1F8F7 45%, #E5F3F1 100%)",
+				}}
+			>
+				<Header
+					onShowFav={() => setShowFavModal(true)}
+					onLimpiarMes={() => setConfirmOpen(true)}
+				/>
+			</div>
 
-			{/* PÁGINAS HIJAS */}
-			<Outlet />
+			{/* CONTENIDO */}
+			<div className="relative">
+				<Outlet />
+			</div>
 
-			{/* MODAL FAVORITOS */}
+			{/* FAVORITOS */}
 			{showFavModal && (
 				<FavoritosModal
 					favoritos={favoritos}
@@ -156,7 +174,7 @@ export default function MainLayout() {
 				/>
 			)}
 
-			{/* MODAL CONFIRMAR LIMPIAR MES */}
+			{/* CONFIRMACIÓN */}
 			<ConfirmModal
 				show={confirmOpen}
 				message={`¿Seguro que quieres borrar TODOS los movimientos del mes ${mes}/${año}?`}

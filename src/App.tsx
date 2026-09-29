@@ -1,21 +1,34 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+	BrowserRouter,
+	Navigate,
+	Route,
+	Routes,
+} from "react-router-dom";
+
 import { AuthProvider } from "./hooks/useAuth";
 import { FechaProvider } from "./context/FechaContext";
 import { MovimientosProvider } from "./context/MovimientoContext";
 
 import "./index.css";
 
+/* PÁGINAS PÚBLICAS */
+import Landing from "./pages/Landing";
 import Login from "./pages/Login";
+
+/* PÁGINAS PRIVADAS */
 import Dashboard from "./pages/Dashboard/Dashboard";
 import AddMovimiento from "./pages/AddMovimiento";
 import EditMovimiento from "./pages/EditMovimiento";
 import Perfil from "./pages/Perfil";
 import Evolucion from "./pages/Evolucion/Evolucion";
+import GestionCategorias from "./pages/GestionCategorias";
+import Inversiones from "./pages/Inversiones/Inversiones";
 
+/* AUTH */
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import RedirectIfLogged from "./components/auth/RedirectIfLogged";
-import GestionCategorias from "./pages/GestionCategorias";
 
+/* LAYOUTS */
 import MainLayout from "./layouts/MainLayout";
 import AuthLayout from "./layouts/AuthLayout";
 
@@ -23,15 +36,25 @@ export default function App() {
 	return (
 		<AuthProvider>
 			<FechaProvider>
-
-				{/* 🟩 AÑADIDO: PROVIDER QUE FALTABA */}
 				<MovimientosProvider>
-
 					<BrowserRouter>
 						<Routes>
 
-							{/* ❌ Páginas sin header */}
+							{/* ======================================== */}
+							{/* LANDING PÚBLICA                         */}
+							{/* ======================================== */}
+
+							<Route
+								path="/"
+								element={<Landing />}
+							/>
+
+							{/* ======================================== */}
+							{/* AUTENTICACIÓN                           */}
+							{/* ======================================== */}
+
 							<Route element={<AuthLayout />}>
+
 								<Route
 									path="/login"
 									element={
@@ -41,46 +64,12 @@ export default function App() {
 									}
 								/>
 
-								<Route
-									path="/add"
-									element={
-										<ProtectedRoute>
-											<AddMovimiento />
-										</ProtectedRoute>
-									}
-								/>
-
-								<Route
-									path="/edit/:id"
-									element={
-										<ProtectedRoute>
-											<EditMovimiento />
-										</ProtectedRoute>
-									}
-								/>
-
-								<Route
-									path="/categorias"
-									element={
-										<ProtectedRoute>
-											<GestionCategorias />
-										</ProtectedRoute>
-									}
-								/>
-
-								<Route
-									path="/evolucion"
-									element={
-										<ProtectedRoute>
-											<Evolucion />
-										</ProtectedRoute>
-									}
-								/>
-
-								<Route path="/perfil" element={<Perfil />} />
 							</Route>
 
-							{/* ✅ Páginas CON header */}
+							{/* ======================================== */}
+							{/* APLICACIÓN PRIVADA                      */}
+							{/* ======================================== */}
+
 							<Route
 								element={
 									<ProtectedRoute>
@@ -88,16 +77,60 @@ export default function App() {
 									</ProtectedRoute>
 								}
 							>
-								<Route path="/" element={<Dashboard />} />
+
+								<Route
+									path="/dashboard"
+									element={<Dashboard />}
+								/>
+
+								<Route
+									path="/add"
+									element={<AddMovimiento />}
+								/>
+
+								<Route
+									path="/edit/:id"
+									element={<EditMovimiento />}
+								/>
+
+								<Route
+									path="/categorias"
+									element={<GestionCategorias />}
+								/>
+
+								<Route
+									path="/evolucion"
+									element={<Evolucion />}
+								/>
+
+								<Route
+									path="/perfil"
+									element={<Perfil />}
+								/>
+
+								<Route
+									path="/inversiones"
+									element={<Inversiones />}
+								/>
 
 							</Route>
 
-							{/* Redirección por defecto */}
-							<Route path="*" element={<Navigate to="/" />} />
+							{/* ======================================== */}
+							{/* FALLBACK                                */}
+							{/* ======================================== */}
+
+							<Route
+								path="*"
+								element={
+									<Navigate
+										to="/"
+										replace
+									/>
+								}
+							/>
 
 						</Routes>
 					</BrowserRouter>
-
 				</MovimientosProvider>
 			</FechaProvider>
 		</AuthProvider>

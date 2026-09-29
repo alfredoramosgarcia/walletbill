@@ -5,7 +5,9 @@ import {
 	useState,
 	type ReactNode,
 } from "react";
+
 import { supabase } from "../supabase/client";
+
 import type { User } from "@supabase/supabase-js";
 import type { Perfil } from "../types/Perfil";
 
@@ -21,36 +23,115 @@ const AuthContext = createContext<AuthContextType>({
 	loading: true,
 });
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({
+	children,
+}: {
+	children: ReactNode;
+}) {
 	const [user, setUser] = useState<User | null>(null);
 	const [perfil, setPerfil] = useState<Perfil | null>(null);
 	const [loading, setLoading] = useState(true);
 
-	useEffect(() => {
-		async function load() {
-			const { data } = await supabase.auth.getUser();
-			const u = data?.user ?? null;
+	/* ========================================================== */
+	/* CARGAR PERFIL                                              */
+	/* ========================================================== */
 
-			setUser(u);
+	async function cargarPerfil(userId: string) {
+		const { data, error } = await supabase
+			.from("profiles")
+			.select("*")
+			.eq("id", userId)
+			.maybeSingle();
 
-			if (u) {
-				const { data: p } = await supabase
-					.from("profiles") // 👈 tu tabla real
-					.select("*")
-					.eq("id", u.id)  // 👈 id = UID del usuario
-					.single();
-
-				setPerfil(p ?? null);
-			}
-
-			setLoading(false);
+		if (error) {
+			console.error("Error cargando perfil:", error);
+			setPerfil(null);
+			return;
 		}
 
-		load();
+		setPerfil(data ?? null);
+	}
+
+	/* ========================================================== */
+	/* AUTH                                                       */
+	/* ========================================================== */
+
+	useEffect(() => {
+		let mounted = true;
+
+		// ------------------------------------------
+		// 1. Cargar sesión inicial
+		// ------------------------------------------
+
+		async function cargarSesionInicial() {
+			const {
+				data: { session },
+			} = await supabase.auth.getSession();
+
+			if (!mounted) return;
+
+			const currentUser = session?.user ?? null;
+
+			setUser(currentUser);
+
+			if (currentUser) {
+				await cargarPerfil(currentUser.id);
+			} else {
+				setPerfil(null);
+			}
+
+			if (mounted) {
+				setLoading(false);
+			}
+		}
+
+		cargarSesionInicial();
+
+		// ------------------------------------------
+		// 2. ESCUCHAR LOGIN / LOGOUT
+		// ------------------------------------------
+
+		const {
+			data: { subscription },
+		} = supabase.auth.onAuthStateChange(
+			(_event, session) => {
+				if (!mounted) return;
+
+				const currentUser =
+					session?.user ?? null;
+
+				// Actualizamos inmediatamente el usuario.
+				setUser(currentUser);
+				setLoading(false);
+
+				if (currentUser) {
+					// No bloqueamos el cambio de auth esperando
+					// la consulta del perfil.
+					void cargarPerfil(currentUser.id);
+				} else {
+					setPerfil(null);
+				}
+			}
+		);
+
+		// ------------------------------------------
+		// 3. LIMPIEZA
+		// ------------------------------------------
+
+		return () => {
+			mounted = false;
+			subscription.unsubscribe();
+		};
 	}, []);
 
 	return (
-		<AuthContext.Provider value={{ user, perfil, loading }}>
+		<AuthContext.Provider
+			value={{
+				user,
+				perfil,
+				loading,
+			}}
+		>
 			{children}
 		</AuthContext.Provider>
 	);

@@ -1,20 +1,36 @@
 // src/pages/PerfilUsuario.tsx
+
 import { useEffect, useState } from "react";
-import { supabase } from "../supabase/client";
 import { useNavigate } from "react-router-dom";
+import {
+	Check,
+	Eye,
+	EyeOff,
+	KeyRound,
+	ShieldCheck,
+	Trash2,
+	UserRound,
+} from "lucide-react";
+
+import { supabase } from "../supabase/client";
 import Alert from "../components/alerts/Alert";
 
 export default function PerfilUsuario() {
 	const navigate = useNavigate();
 
 	const [nombre, setNombre] = useState("");
+	const [email, setEmail] = useState("");
 	const [newPass, setNewPass] = useState("");
 
-	const [alert, setAlert] = useState("");
-	const [alertType, setAlertType] = useState<"success" | "error">("success");
+	const [mostrarPassword, setMostrarPassword] = useState(false);
 
-	const [error, setError] = useState("");
-	const [, setLoading] = useState(false);
+	const [guardandoNombre, setGuardandoNombre] = useState(false);
+	const [guardandoPassword, setGuardandoPassword] = useState(false);
+	const [eliminando, setEliminando] = useState(false);
+
+	const [alert, setAlert] = useState("");
+	const [alertType, setAlertType] =
+		useState<"success" | "error">("success");
 
 	const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -22,216 +38,615 @@ export default function PerfilUsuario() {
 		cargarPerfil();
 	}, []);
 
+	/* ========================================================== */
+	/* CARGAR PERFIL                                              */
+	/* ========================================================== */
+
 	async function cargarPerfil() {
-		const { data: session } = await supabase.auth.getUser();
-		const user = session?.user;
+		const {
+			data: { user },
+		} = await supabase.auth.getUser();
+
 		if (!user) return;
 
-		const { data: perfil } = await supabase
-			.from("profiles")
-			.select("*")
-			.eq("id", user.id)
-			.single();
+		setEmail(user.email ?? "");
 
-		if (perfil) setNombre(perfil.nombre);
+		const { data: perfil, error } = await supabase
+			.from("profiles")
+			.select("nombre")
+			.eq("id", user.id)
+			.maybeSingle();
+
+		if (error) {
+			setAlertType("error");
+			setAlert("No se pudo cargar el perfil.");
+			return;
+		}
+
+		if (perfil) {
+			setNombre(perfil.nombre ?? "");
+		}
 	}
 
-	// ==========================
-	// GUARDAR NOMBRE
-	// ==========================
+	/* ========================================================== */
+	/* GUARDAR NOMBRE                                             */
+	/* ========================================================== */
+
 	async function guardarNombre() {
-		if (!nombre.trim()) {
+		if (guardandoNombre) return;
+
+		const nombreLimpio = nombre.trim();
+
+		if (!nombreLimpio) {
 			setAlert("Debes introducir un nombre.");
 			setAlertType("error");
 			return;
 		}
 
-		setLoading(true);
-		setError("");
+		setGuardandoNombre(true);
 
-		const { data: session } = await supabase.auth.getUser();
-		const user = session?.user;
-		if (!user) return;
+		try {
+			const {
+				data: { user },
+			} = await supabase.auth.getUser();
 
-		const { error } = await supabase
-			.from("profiles")
-			.update({ nombre })
-			.eq("id", user.id);
+			if (!user) {
+				setAlert("No se ha podido identificar al usuario.");
+				setAlertType("error");
+				return;
+			}
 
-		setLoading(false);
+			const { error } = await supabase
+				.from("profiles")
+				.update({
+					nombre: nombreLimpio,
+				})
+				.eq("id", user.id);
 
-		if (error) {
-			setAlert("No se pudo actualizar el nombre.");
-			setAlertType("error");
-		} else {
-			setAlert("Nombre actualizado.");
+			if (error) {
+				setAlert("No se pudo actualizar el nombre.");
+				setAlertType("error");
+				return;
+			}
+
+			setNombre(nombreLimpio);
+
+			setAlert("Nombre actualizado correctamente.");
 			setAlertType("success");
+		} finally {
+			setGuardandoNombre(false);
 		}
 	}
 
-	// ==========================
-	// CAMBIAR PASSWORD
-	// ==========================
+	/* ========================================================== */
+	/* CAMBIAR CONTRASEÑA                                         */
+	/* ========================================================== */
+
 	async function cambiarPassword() {
+		if (guardandoPassword) return;
+
 		if (!newPass.trim()) {
-			setAlert("La nueva contraseña no puede estar vacía.");
+			setAlert("Introduce una nueva contraseña.");
 			setAlertType("error");
 			return;
 		}
 
-		setLoading(true);
-		setError("");
-
-		const { error } = await supabase.auth.updateUser({
-			password: newPass,
-		});
-
-		setLoading(false);
-
-		if (error) {
-			setAlert(error.message);
+		if (newPass.length < 6) {
+			setAlert(
+				"La contraseña debe tener al menos 6 caracteres."
+			);
 			setAlertType("error");
-		} else {
-			setAlert("Contraseña actualizada.");
+			return;
+		}
+
+		setGuardandoPassword(true);
+
+		try {
+			const { error } = await supabase.auth.updateUser({
+				password: newPass,
+			});
+
+			if (error) {
+				setAlert(error.message);
+				setAlertType("error");
+				return;
+			}
+
+			setNewPass("");
+
+			setAlert("Contraseña actualizada correctamente.");
 			setAlertType("success");
+		} finally {
+			setGuardandoPassword(false);
 		}
 	}
 
-	// ==========================
-	// ELIMINAR CUENTA
-	// ==========================
+	/* ========================================================== */
+	/* ELIMINAR CUENTA                                            */
+	/* ========================================================== */
+
 	async function eliminarCuenta() {
-		setLoading(true);
-		setError("");
+		if (eliminando) return;
 
-		const { error } = await supabase.rpc("delete_user");
+		setEliminando(true);
 
-		setLoading(false);
+		try {
+			const { error } = await supabase.rpc("delete_user");
 
-		if (error) {
-			setAlert("Error eliminando cuenta.");
-			setAlertType("error");
-			return;
+			if (error) {
+				setAlert("Error eliminando la cuenta.");
+				setAlertType("error");
+				return;
+			}
+
+			await supabase.auth.signOut();
+
+			navigate("/login", {
+				replace: true,
+			});
+		} finally {
+			setEliminando(false);
 		}
-
-		setAlert("Cuenta eliminada correctamente.");
-		setAlertType("success");
-
-		await supabase.auth.signOut();
-		localStorage.removeItem("supabase.auth.token");
-		localStorage.removeItem("supabase.auth.refresh_token");
-
-		navigate("/login", { replace: true });
-		window.location.reload();
 	}
 
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-[#D9ECEA] px-4">
+		<main className="min-h-screen bg-transparent">
 
-			{/* ALERTA SUPERIOR */}
-			<Alert message={alert} type={alertType} onClose={() => setAlert("")} />
+			<Alert
+				message={alert}
+				type={alertType}
+				onClose={() => setAlert("")}
+			/>
 
-			<div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-lg">
+			<div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 lg:py-8">
 
-				{/* Título + volver */}
-				<div className="relative flex items-center justify-center mb-6">
-					<h1 className="text-2xl font-bold text-[#006C7A]">Mi Perfil</h1>
+				{/* ================================================== */}
+				{/* CABECERA                                           */}
+				{/* ================================================== */}
 
+				<div className="mb-6 flex items-start justify-between gap-4">
+
+					<div>
+						<p
+							className="mb-1 text-sm font-semibold"
+							style={{ color: "#008F8C" }}
+						>
+							Mi cuenta
+						</p>
+
+						<h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+							Perfil
+						</h1>
+
+						<p className="mt-1 text-sm text-slate-500">
+							Gestiona tus datos personales y la seguridad de tu cuenta.
+						</p>
+					</div>
+
+					{/* Carácter en lugar de SVG */}
 					<button
+						type="button"
 						onClick={() => navigate(-1)}
-						className="absolute right-0 px-4 py-2 bg-gray-200 text-black rounded-lg text-sm font-semibold hover:bg-gray-300 transition"
+						className="
+							flex h-10 w-10 shrink-0
+							items-center justify-center
+							rounded-xl border border-slate-200
+							bg-white shadow-sm transition
+							hover:border-[#008F8C]
+							hover:bg-[#E8F6F3]
+						"
+						style={{
+							color: "#006C7A",
+						}}
+						title="Volver"
+						aria-label="Volver"
 					>
-						←
+						<span
+							className="text-xl font-bold leading-none"
+							style={{ color: "#006C7A" }}
+						>
+							←
+						</span>
 					</button>
+
 				</div>
 
-				{/* Error de Supabase (deprecated) */}
-				{error && (
-					<div className="mb-3 p-3 bg-red-100 border border-red-300 text-red-700 rounded text-center text-sm">
-						{error}
-					</div>
-				)}
+				<div className="space-y-5">
 
-				<div className="space-y-6">
+					{/* ================================================== */}
+					{/* DATOS PERSONALES                                    */}
+					{/* ================================================== */}
 
-					{/* Nombre */}
-					<div>
-						<label className="text-sm font-semibold text-black">Nombre</label>
-						<input
-							className="w-full mt-1 p-3 rounded-xl border bg-gray-50 text-black"
-							type="text"
-							value={nombre}
-							onChange={(e) => setNombre(e.target.value)}
-						/>
-						<button
-							onClick={guardarNombre}
-							className="mt-2 px-4 py-2 bg-[#0097A7] text-white rounded-lg text-sm font-semibold hover:bg-[#008190] transition mx-auto block"
-						>
-							Guardar nombre
-						</button>
-					</div>
+					<section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
 
-					{/* Contraseña */}
-					<div>
-						<label className="text-sm font-semibold text-black">Nueva contraseña</label>
-						<input
-							className="w-full mt-1 p-3 rounded-xl border bg-gray-50 text-black"
-							type="password"
-							value={newPass}
-							onChange={(e) => setNewPass(e.target.value)}
-						/>
-						<button
-							onClick={cambiarPassword}
-							className="mt-2 px-4 py-2 bg-[#0097A7] text-white rounded-lg text-sm font-semibold hover:bg-[#008190] transition mx-auto block"
-						>
-							Cambiar contraseña
-						</button>
-					</div>
+						<div className="flex items-center gap-3 border-b border-slate-100 px-5 py-5 sm:px-6">
 
-					{/* Borrar cuenta */}
-					<div className="text-center">
-						<button
-							onClick={() => setConfirmDelete(true)}
-							className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition"
-						>
-							🗑️ Borrar mi cuenta
-						</button>
-					</div>
+							<div
+								className="flex h-10 w-10 items-center justify-center rounded-xl"
+								style={{
+									backgroundColor: "#E8F6F3",
+									color: "#006C7A",
+								}}
+							>
+								<UserRound size={18} />
+							</div>
+
+							<div>
+								<h2 className="font-bold text-slate-800">
+									Datos personales
+								</h2>
+
+								<p className="text-xs text-slate-400">
+									Información de tu perfil en WalletBill.
+								</p>
+							</div>
+
+						</div>
+
+						<div className="space-y-5 p-5 sm:p-6">
+
+							{/* NOMBRE */}
+							<div>
+								<label className="mb-2 block text-sm font-semibold text-slate-700">
+									Nombre
+								</label>
+
+								<input
+									type="text"
+									value={nombre}
+									onChange={(e) =>
+										setNombre(e.target.value)
+									}
+									onKeyDown={(e) => {
+										if (e.key === "Enter") {
+											guardarNombre();
+										}
+									}}
+									placeholder="Tu nombre"
+									className="
+										w-full rounded-xl
+										border border-slate-200
+										bg-slate-50
+										px-4 py-3
+										text-sm font-medium
+										text-slate-700
+										outline-none transition
+										placeholder:text-slate-400
+										focus:border-[#008F8C]
+										focus:bg-white
+										focus:ring-2
+										focus:ring-[#008F8C]/10
+									"
+								/>
+							</div>
+
+							{/* EMAIL */}
+							<div>
+								<label className="mb-2 block text-sm font-semibold text-slate-700">
+									Correo electrónico
+								</label>
+
+								<input
+									type="email"
+									value={email}
+									readOnly
+									className="
+										w-full cursor-not-allowed
+										rounded-xl border border-slate-200
+										bg-slate-100
+										px-4 py-3
+										text-sm font-medium
+										text-slate-500
+										outline-none
+									"
+								/>
+
+								<p className="mt-2 text-xs text-slate-400">
+									El correo asociado a tu cuenta.
+								</p>
+							</div>
+
+							<div className="flex justify-end">
+								<button
+									type="button"
+									onClick={guardarNombre}
+									disabled={guardandoNombre}
+									className="
+										inline-flex items-center
+										justify-center gap-2
+										rounded-xl px-5 py-3
+										text-sm font-bold text-white
+										shadow-sm transition
+										hover:opacity-90
+										disabled:cursor-not-allowed
+										disabled:opacity-60
+									"
+									style={{
+										background:
+											"linear-gradient(135deg, #006C7A 0%, #008F8C 100%)",
+									}}
+								>
+									{guardandoNombre ? (
+										<>
+											<span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+											Guardando...
+										</>
+									) : (
+										<>
+											<Check size={16} />
+											Guardar nombre
+										</>
+									)}
+								</button>
+							</div>
+
+						</div>
+					</section>
+
+					{/* ================================================== */}
+					{/* SEGURIDAD                                          */}
+					{/* ================================================== */}
+
+					<section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+
+						<div className="flex items-center gap-3 border-b border-slate-100 px-5 py-5 sm:px-6">
+
+							<div
+								className="flex h-10 w-10 items-center justify-center rounded-xl"
+								style={{
+									backgroundColor: "#E8F6F3",
+									color: "#006C7A",
+								}}
+							>
+								<ShieldCheck size={18} />
+							</div>
+
+							<div>
+								<h2 className="font-bold text-slate-800">
+									Seguridad
+								</h2>
+
+								<p className="text-xs text-slate-400">
+									Actualiza la contraseña de acceso.
+								</p>
+							</div>
+
+						</div>
+
+						<div className="p-5 sm:p-6">
+
+							<label className="mb-2 block text-sm font-semibold text-slate-700">
+								Nueva contraseña
+							</label>
+
+							<div className="relative">
+
+								<KeyRound
+									size={17}
+									className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+								/>
+
+								<input
+									type={
+										mostrarPassword
+											? "text"
+											: "password"
+									}
+									value={newPass}
+									onChange={(e) =>
+										setNewPass(e.target.value)
+									}
+									onKeyDown={(e) => {
+										if (e.key === "Enter") {
+											cambiarPassword();
+										}
+									}}
+									placeholder="Nueva contraseña"
+									autoComplete="new-password"
+									className="
+										w-full rounded-xl
+										border border-slate-200
+										bg-slate-50
+										py-3 pl-11 pr-12
+										text-sm font-medium
+										text-slate-700
+										outline-none transition
+										placeholder:text-slate-400
+										focus:border-[#008F8C]
+										focus:bg-white
+										focus:ring-2
+										focus:ring-[#008F8C]/10
+									"
+								/>
+
+								<button
+									type="button"
+									onClick={() =>
+										setMostrarPassword(
+											!mostrarPassword
+										)
+									}
+									className="
+										absolute right-3 top-1/2
+										flex h-8 w-8
+										-translate-y-1/2
+										items-center justify-center
+										rounded-lg text-slate-400
+										transition hover:bg-slate-100
+										hover:text-slate-600
+									"
+									aria-label={
+										mostrarPassword
+											? "Ocultar contraseña"
+											: "Mostrar contraseña"
+									}
+								>
+									{mostrarPassword ? (
+										<EyeOff size={17} />
+									) : (
+										<Eye size={17} />
+									)}
+								</button>
+
+							</div>
+
+							<p className="mt-2 text-xs text-slate-400">
+								Utiliza al menos 6 caracteres.
+							</p>
+
+							<div className="mt-5 flex justify-end">
+
+								<button
+									type="button"
+									onClick={cambiarPassword}
+									disabled={
+										guardandoPassword ||
+										!newPass
+									}
+									className="
+										inline-flex items-center
+										justify-center gap-2
+										rounded-xl px-5 py-3
+										text-sm font-bold text-white
+										shadow-sm transition
+										hover:opacity-90
+										disabled:cursor-not-allowed
+										disabled:opacity-40
+									"
+									style={{
+										background:
+											"linear-gradient(135deg, #006C7A 0%, #008F8C 100%)",
+									}}
+								>
+									{guardandoPassword ? (
+										<>
+											<span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+											Actualizando...
+										</>
+									) : (
+										<>
+											<Check size={16} />
+											Cambiar contraseña
+										</>
+									)}
+								</button>
+
+							</div>
+						</div>
+					</section>
+
+					{/* ================================================== */}
+					{/* ZONA PELIGROSA                                     */}
+					{/* ================================================== */}
+
+					<section className="rounded-3xl border border-rose-200 bg-white p-5 shadow-sm sm:p-6">
+
+						<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+							<div>
+								<p className="font-bold text-slate-800">
+									Eliminar cuenta
+								</p>
+
+								<p className="mt-1 max-w-lg text-sm leading-6 text-slate-500">
+									Elimina permanentemente tu cuenta y los datos asociados.
+									Esta acción no se puede deshacer.
+								</p>
+							</div>
+
+							<button
+								type="button"
+								onClick={() =>
+									setConfirmDelete(true)
+								}
+								className="
+									shrink-0 rounded-xl
+									border border-rose-200
+									bg-rose-50 px-4 py-2.5
+									text-sm font-semibold
+									text-rose-600 transition
+									hover:bg-rose-100
+								"
+							>
+								Eliminar cuenta
+							</button>
+
+						</div>
+					</section>
 
 				</div>
 			</div>
 
-			{/* MODAL ELIMINAR CUENTA */}
+			{/* ====================================================== */}
+			{/* MODAL ELIMINAR CUENTA                                  */}
+			{/* ====================================================== */}
+
 			{confirmDelete && (
-				<div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-					<div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-sm text-center">
-						<h2 className="text-lg font-semibold text-black mb-4">
+				<div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/30 px-4 backdrop-blur-sm">
+
+					<div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
+
+						<div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-500">
+							<Trash2 size={21} />
+						</div>
+
+						<h2 className="text-xl font-bold text-slate-900">
 							¿Eliminar tu cuenta?
 						</h2>
 
-						<p className="text-gray-600 text-sm mb-6">
+						<p className="mt-2 text-sm leading-6 text-slate-500">
+							Tu cuenta se eliminará de forma permanente.
 							Esta acción no se puede deshacer.
 						</p>
 
-						<div className="flex justify-center gap-4">
+						<div className="mt-6 flex justify-end gap-3">
+
 							<button
-								onClick={() => setConfirmDelete(false)}
-								className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 text-black"
+								type="button"
+								onClick={() =>
+									setConfirmDelete(false)
+								}
+								disabled={eliminando}
+								className="
+									rounded-xl border border-slate-200
+									bg-white px-4 py-2.5
+									text-sm font-semibold text-slate-600
+									transition hover:bg-slate-50
+								"
 							>
 								Cancelar
 							</button>
 
 							<button
+								type="button"
 								onClick={eliminarCuenta}
-								className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+								disabled={eliminando}
+								className="
+									inline-flex items-center gap-2
+									rounded-xl bg-rose-600
+									px-4 py-2.5
+									text-sm font-semibold text-white
+									transition hover:bg-rose-700
+									disabled:opacity-60
+								"
 							>
-								Eliminar
+								{eliminando ? (
+									<>
+										<span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+										Eliminando...
+									</>
+								) : (
+									<>
+										Eliminar definitivamente
+									</>
+								)}
 							</button>
+
 						</div>
 					</div>
 				</div>
 			)}
 
-		</div>
+		</main>
 	);
 }

@@ -7,7 +7,7 @@ export default function RedirectIfLogged({ children }: { children: ReactNode }) 
 
 	if (loading) return <div>Cargando...</div>;
 
-	if (user) return <Navigate to="/" replace />;
+	if (user) return <Navigate to="/dashboard" replace />;
 
 	return <>{children}</>;
 }
