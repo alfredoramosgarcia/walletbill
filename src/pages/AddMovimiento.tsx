@@ -173,7 +173,7 @@ export default function AddMovimiento() {
 			setAlertType("success");
 			setAlertMsg("Movimiento guardado correctamente.");
 
-			setTimeout(() => navigate("/"), 700);
+			setTimeout(() => navigate("/dashboard"), 700);
 		} finally {
 			setGuardando(false);
 		}

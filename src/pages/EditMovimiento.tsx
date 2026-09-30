@@ -239,7 +239,7 @@ export default function EditMovimiento() {
 			setAlertType("success");
 			setAlertMsg("Movimiento actualizado correctamente.");
 
-			setTimeout(() => navigate("/"), 600);
+			setTimeout(() => navigate("/dashboard"), 600);
 		} finally {
 			setGuardando(false);
 		}
@@ -262,7 +262,7 @@ export default function EditMovimiento() {
 				return;
 			}
 
-			navigate("/");
+			navigate("/dashboard");
 		} finally {
 			setBorrando(false);
 		}
@@ -400,8 +400,8 @@ export default function EditMovimiento() {
 								<div>
 									<p
 										className={`text-sm font-bold ${mov.tipo === "gasto"
-												? "text-rose-600"
-												: "text-slate-700"
+											? "text-rose-600"
+											: "text-slate-700"
 											}`}
 									>
 										Gasto
@@ -442,8 +442,8 @@ export default function EditMovimiento() {
 								<div>
 									<p
 										className={`text-sm font-bold ${mov.tipo === "ingreso"
-												? "text-emerald-600"
-												: "text-slate-700"
+											? "text-emerald-600"
+											: "text-slate-700"
 											}`}
 									>
 										Ingreso

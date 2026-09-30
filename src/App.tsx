@@ -23,6 +23,7 @@ import Perfil from "./pages/Perfil";
 import Evolucion from "./pages/Evolucion/Evolucion";
 import GestionCategorias from "./pages/GestionCategorias";
 import Inversiones from "./pages/Inversiones/Inversiones";
+import FAQ from "./pages/FAQ/FAQ"
 
 /* AUTH */
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -112,6 +113,8 @@ export default function App() {
 									path="/inversiones"
 									element={<Inversiones />}
 								/>
+
+								<Route path="/faq" element={<FAQ />} />
 
 							</Route>
 

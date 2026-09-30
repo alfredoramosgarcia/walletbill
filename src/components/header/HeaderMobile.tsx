@@ -6,6 +6,7 @@ import {
 	CalendarDays,
 	Heart,
 	LayoutDashboard,
+	CircleHelp,
 	LogOut,
 	Menu,
 	Plus,
@@ -362,6 +363,21 @@ export default function HeaderMobile({
 							)}
 							onClick={() =>
 								goTo("/inversiones")
+							}
+						/>
+
+						<ViewButton
+							icon={
+								<CircleHelp
+									size={19}
+								/>
+							}
+							label="Ayuda"
+							active={
+								location.pathname === "/faq"
+							}
+							onClick={() =>
+								goTo("/faq")
 							}
 						/>
 

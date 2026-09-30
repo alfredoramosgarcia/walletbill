@@ -7,6 +7,7 @@ import {
 import {
 	BarChart3,
 	LayoutDashboard,
+	CircleHelp,
 	Plus,
 	Settings2,
 	TrendingUp,
@@ -166,6 +167,18 @@ export default function HeaderDesktop({
 								size={17}
 							/>
 						}
+					/>
+
+
+					<NavItem
+						to="/faq"
+						label="Ayuda"
+						icon={
+							<CircleHelp size={17} />
+						}
+						active={location.pathname.startsWith(
+							"/faq"
+						)}
 					/>
 
 				</nav>
