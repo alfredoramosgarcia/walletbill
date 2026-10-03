@@ -30,7 +30,7 @@ interface Movimiento {
 	tipo: "gasto" | "ingreso";
 	categoria: string;
 	concepto: string;
-	cantidad: number;
+	cantidad: string;
 	mes: string;
 	año: number;
 }
@@ -559,29 +559,52 @@ export default function EditMovimiento() {
 								/>
 
 								<input
-									type="number"
+									type="text"
 									inputMode="decimal"
-									min="0"
-									step="0.01"
 									value={mov.cantidad}
-									onChange={(e) =>
+									onChange={(e) => {
+										let valor = e.target.value;
+
+										// Aceptamos tanto coma como punto
+										valor = valor.replace(",", ".");
+
+										// Solo números y un punto decimal
+										valor = valor.replace(/[^0-9.]/g, "");
+
+										const partes = valor.split(".");
+
+										// Evitar más de un punto decimal
+										if (partes.length > 2) {
+											return;
+										}
+
+										// Máximo 2 decimales
+										if (
+											partes[1] !== undefined &&
+											partes[1].length > 2
+										) {
+											return;
+										}
+
 										setMov({
 											...mov,
-											cantidad: Number(e.target.value),
-										})
-									}
+											cantidad: valor,
+										});
+									}}
+									placeholder="0,00"
 									className="
-										w-full rounded-xl
-										border border-slate-200
-										bg-slate-50
-										py-3 pl-11 pr-14
-										text-lg font-bold text-slate-800
-										outline-none transition
-										focus:border-[#008F8C]
-										focus:bg-white
-										focus:ring-2
-										focus:ring-[#008F8C]/10
-									"
+		w-full rounded-xl
+		border border-slate-200
+		bg-slate-50
+		py-3 pl-11 pr-14
+		text-lg font-bold text-slate-800
+		outline-none transition
+		placeholder:text-slate-300
+		focus:border-[#008F8C]
+		focus:bg-white
+		focus:ring-2
+		focus:ring-[#008F8C]/10
+	"
 								/>
 
 								<span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400">
